@@ -421,19 +421,18 @@ useEffect(() => {
  <div
  //~~~~~~幕スライダー~~~~~~~
   style={{
-    position: "fixed",
-    bottom: isMobile ? "calc(41vh)" : 40,
-    left: 0,
-    width: "100%",
-    background: "rgba(255,255,255,0.95)",
-    backdropFilter: "blur(6px)",
-    padding: isMobile ? 8 : 10,
-    zIndex: 9,
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    borderTop: "1px solid #ccc"
-  }}
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      width: "100%",
+      background: "rgba(255,255,255,0.9)",
+      backdropFilter: "blur(6px)",
+      padding: 8,
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      borderTop: "1px solid #ccc"
+    }}
 >
   <div>
     幕:
