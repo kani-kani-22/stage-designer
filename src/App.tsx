@@ -430,14 +430,22 @@ useEffect(() => {
   >↓</button>
   <div />
 </div>
- <div style={{
-  position: "fixed",
-  bottom: 220,
-  left: 400,
-  background: "#fff",
-  padding: 10,
-  zIndex: 15
-}}>
+ <div
+  style={{
+    position: "fixed",
+    bottom: isMobile ? "calc(45vh)" : 40,
+    left: 0,
+    width: "100%",
+    background: "rgba(255,255,255,0.95)",
+    backdropFilter: "blur(6px)",
+    padding: isMobile ? 8 : 10,
+    zIndex: 55,
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    borderTop: "1px solid #ccc"
+  }}
+>
   <div>
     幕:
     <input
@@ -498,18 +506,23 @@ useEffect(() => {
 </div>
 {!isExporting && (
   <div
-  style={{
-    position: "fixed",
-    bottom: 220,
-    left: 20,
-    zIndex: 30,
-    display: "flex",
-    gap: 10,
-  }}>
+    style={{
+      position: "fixed",
+      top: isMobile ? 10 : "auto",
+      bottom: isMobile ? "auto" : 220,
+      left: isMobile ? 10 : 20,
+      right: isMobile ? 10 : "auto",
+      zIndex: 50,
+      display: "flex",
+      gap: 10,
+      justifyContent: isMobile ? "space-between" : "flex-start"
+    }}
+  >
   <button
   style={{
-  fontSize: 18,
-  padding: "12px 16px",
+    fontSize: isMobile ? 14 : 18,
+    padding: isMobile ? "10px 12px" : "12px 16px",
+    flex: isMobile ? 1 : "none"
   }}
   onClick={() => {
     setIsExporting(true)
@@ -540,8 +553,9 @@ useEffect(() => {
 </button>
   <button
   style={{
-  fontSize: 18,
-  padding: "12px 16px",
+    fontSize: isMobile ? 14 : 18,
+    padding: isMobile ? "10px 12px" : "12px 16px",
+    flex: isMobile ? 1 : "none"
   }}
   onClick={() => {
     setIsExporting(true)
@@ -586,6 +600,17 @@ useEffect(() => {
 >
   PNG保存
 </button>
+<button
+  //パーツ追加ボタン
+  onClick={() => setRightOpen(true)}
+  style={{
+    fontSize: isMobile ? 14 : 18,
+    padding: isMobile ? "10px 12px" : "12px 16px",
+    flex: isMobile ? 1 : "none"
+  }}
+>
+  パーツ
+</button>
 </div>
 )}
 
@@ -596,7 +621,7 @@ useEffect(() => {
         position: "fixed",
         top: 0,
         right: rightOpen ? 0 : (isMobile ? "-100%" : -200),
-        width: isMobile ? "70%" : 200,
+        width: isMobile ? "50%" : 200,
         height: "100%",
         background: "#eee",
         transition: "0.3s",
@@ -604,7 +629,10 @@ useEffect(() => {
         zIndex: 10,
       }}
     >
-      <h3>パーツ</h3>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+  <h3>パーツ</h3>
+  <button onClick={() => setRightOpen(false)}>✕</button>
+</div>
 
 <button 
   style={{
@@ -698,7 +726,7 @@ useEffect(() => {
       left: 0,
       width: "100%",
       background: "#ddd",
-      padding: 10,
+      padding: isMobile ? 6 : 10,
       zIndex: 20,
       display: "flex",
       gap: 10,
@@ -708,8 +736,7 @@ useEffect(() => {
   >
 
     {/* 名前 */}
-    <strong>{selectedObj.name}</strong>
-
+    {!isMobile && <strong>{selectedObj.name}</strong>}
     {/* 削除 */}
     <button
       style={{ fontSize: 18, padding: "10px 14px", userSelect: "none",
