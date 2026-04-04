@@ -350,7 +350,8 @@ useEffect(() => {
   bottom: 140,
   right: 0,
   display: "grid",
-  gridTemplateColumns: isMobile ? "40px 40px 40px" : "100px 100px 100px",
+  gridTemplateColumns: isMobile ? "50px 50px 50px" : "100px 100px 100px",
+  gridTemplateRows: isMobile ? "50px 50px 50px" : "100px 100px 100px",
   gap: 10,
   zIndex: 100
 }}>
@@ -421,13 +422,13 @@ useEffect(() => {
  //~~~~~~幕スライダー~~~~~~~
   style={{
     position: "fixed",
-    bottom: isMobile ? "calc(25vh)" : 40,
+    bottom: isMobile ? "calc(38vh)" : 40,
     left: 0,
     width: "100%",
     background: "rgba(255,255,255,0.95)",
     backdropFilter: "blur(6px)",
     padding: isMobile ? 8 : 10,
-    zIndex: 55,
+    zIndex: 9,
     display: "flex",
     alignItems: "center",
     gap: 10,
@@ -452,7 +453,7 @@ useEffect(() => {
   bottom: 0,
   left: 0,
   width: "100%",
-  height: isMobile ? 80 : 120,
+  height: isMobile ? 70 : 120,
   background: "#fff",
   overflowX: "auto",
   display: "flex",
@@ -493,14 +494,15 @@ useEffect(() => {
   ))}
 </div>
 {!isExporting && (
+  //^^^^^^^^^^保存・パーツ^^^^^^^^^^^^^^
   <div
     style={{
       position: "fixed",
-      top: isMobile ? 40 : "auto",
+      top: isMobile ? 60 : "auto",
       bottom: isMobile ? "auto" : 220,
       left: isMobile ? 10 : 20,
       right: isMobile ? 10 : "auto",
-      zIndex: 50,
+      zIndex: isMobile ? 15 : 50,
       display: "flex",
       gap: 10,
       justifyContent: isMobile ? "space-between" : "flex-start"
