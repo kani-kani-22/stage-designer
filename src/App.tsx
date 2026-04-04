@@ -84,6 +84,7 @@ useEffect(() => {
 
       
 <div style={{
+  position: "relative",
   width: "100%",
   maxWidth: 1200,
   margin: "0 auto"
@@ -347,8 +348,8 @@ useEffect(() => {
       </div>
    <div style={{
   position: "fixed",
-  bottom: 140,
-  right: 0,
+  bottom: 130,
+  right: 10,
   display: "grid",
   gridTemplateColumns: isMobile ? "50px 50px 50px" : "100px 100px 100px",
   gridTemplateRows: isMobile ? "50px 50px 50px" : "100px 100px 100px",
