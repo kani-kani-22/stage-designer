@@ -30,6 +30,7 @@ function App() {
   const [isExporting, setIsExporting] = useState(false)
   const [curtain, setCurtain] = useState(0) // 0〜1
   const [isTouching, setIsTouching] = useState(false)
+  const isMobile = window.innerWidth < 768
   const getNextNumber = (type: string) => {
   return objects.filter(o => o.name.startsWith(type)).length + 1
 }
@@ -85,8 +86,8 @@ useEffect(() => {
       <button
   style={{
     position: "fixed",
-    bottom: 220,
-    left: 300,
+    bottom: isMobile ? 80 : 220,
+    left: isMobile ? 20 : 300,
     fontSize: 18,
     padding: "14px 18px",
     zIndex: 30
@@ -106,6 +107,7 @@ useEffect(() => {
   preserveAspectRatio="xMidYMid meet"
   style={{
     width: "100%",
+    height: isMobile ? "55vh" : "70vh",
     aspectRatio: `${stageWidth} / ${stageHeight}`,
     border: "1px solid black",
     touchAction: isTouching ? "none" : "auto",
@@ -361,15 +363,15 @@ useEffect(() => {
   bottom: 180,
   right: 20,
   display: "grid",
-  gridTemplateColumns: "100px 100px 100px",
+  gridTemplateColumns: isMobile ? "60px 60px 60px" : "100px 100px 100px",
   gap: 10,
   zIndex: 100
 }}>
   <div />
   <button
   style={{
-    fontSize: 30,
-    padding: "25px",
+  fontSize: isMobile ? 20 : 30,
+  padding: isMobile ? "12px" : "25px",
     userSelect: "none",
     WebkitUserSelect: "none"
   }}
@@ -380,8 +382,8 @@ useEffect(() => {
 
   <button
   style={{
-    fontSize: 30,
-    padding: "25px",
+  fontSize: isMobile ? 20 : 30,
+  padding: isMobile ? "12px" : "25px",
     userSelect: "none",
     WebkitUserSelect: "none"
   }}
@@ -391,8 +393,8 @@ useEffect(() => {
 
   <button
   style={{
-    fontSize: 26,
-    padding: "25px",
+  fontSize: isMobile ? 20 : 30,
+  padding: isMobile ? "12px" : "25px",
     userSelect: "none",
     WebkitUserSelect: "none"
   }}
@@ -406,8 +408,8 @@ useEffect(() => {
 
   <button
   style={{
-    fontSize: 30,
-    padding: "25px",
+  fontSize: isMobile ? 20 : 30,
+  padding: isMobile ? "12px" : "25px",
     userSelect: "none",
     WebkitUserSelect: "none"
   }}
@@ -418,8 +420,8 @@ useEffect(() => {
   <div />
   <button
   style={{
-    fontSize: 30,
-    padding: "25px",
+  fontSize: isMobile ? 20 : 30,
+  padding: isMobile ? "12px" : "25px",
     userSelect: "none",
     WebkitUserSelect: "none"
   }}
@@ -454,7 +456,7 @@ useEffect(() => {
   bottom: 0,
   left: 0,
   width: "100%",
-  height: 120,
+  height: isMobile ? 80 : 120,
   background: "#fff",
   overflowX: "auto",
   display: "flex",
@@ -466,8 +468,8 @@ useEffect(() => {
     <div
       key={obj.id}
       style={{
-        minWidth: 90,
-        padding: "6px 8px",
+        minWidth: isMobile ? 100 : 140,
+        padding: isMobile ? "6px" : "10px",
         border: obj.id === selectedId ? "3px solid red" : "1px solid #ccc",
         borderRadius: 5,
         background: "#fafafa"
@@ -593,8 +595,8 @@ useEffect(() => {
       style={{
         position: "fixed",
         top: 0,
-        right: rightOpen ? 0 : -200,
-        width: 200,
+        right: rightOpen ? 0 : (isMobile ? "-100%" : -200),
+        width: isMobile ? "70%" : 200,
         height: "100%",
         background: "#eee",
         transition: "0.3s",
@@ -692,7 +694,7 @@ useEffect(() => {
   <div
     style={{
       position: "fixed",
-      bottom: 130,
+      bottom: isMobile ? 90 : 130,
       left: 0,
       width: "100%",
       background: "#ddd",
@@ -720,20 +722,6 @@ useEffect(() => {
       削除
     </button>
 
-    {/* 回転 */}
-    <button
-      style={{ fontSize: 18, padding: "10px 14px", userSelect: "none",
-    WebkitUserSelect: "none" }}
-      onClick={() => {
-        setObjects(objects.map(o =>
-          o.id === selectedObj.id
-            ? { ...o, rotation: o.rotation + 15 }
-            : o
-        ))
-      }}
-    >
-      回転
-    </button>
 
     {/* 前面 */}
     <button
