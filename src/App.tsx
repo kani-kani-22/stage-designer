@@ -84,7 +84,6 @@ useEffect(() => {
 
       
 <div style={{
-  position: "relative",
   width: "100%",
   maxWidth: 1200,
   margin: "0 auto"
@@ -421,19 +420,15 @@ useEffect(() => {
 </div>
  <div
  //~~~~~~幕スライダー~~~~~~~
-  style={{
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      width: "100%",
-      background: "rgba(255,255,255,0.9)",
-      backdropFilter: "blur(6px)",
-      padding: 8,
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      borderTop: "1px solid #ccc"
-    }}
+ style={{
+    width: "100%",
+    background: "#fff",
+    padding: isMobile ? 8 : 10,
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    borderTop: "1px solid #ccc"
+  }}
 >
   <div>
     幕:
