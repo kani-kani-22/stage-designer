@@ -422,7 +422,7 @@ useEffect(() => {
  //~~~~~~幕スライダー~~~~~~~
   style={{
     position: "fixed",
-    bottom: isMobile ? "calc(38vh)" : 40,
+    bottom: isMobile ? "calc(41vh)" : 40,
     left: 0,
     width: "100%",
     background: "rgba(255,255,255,0.95)",
@@ -498,11 +498,11 @@ useEffect(() => {
   <div
     style={{
       position: "fixed",
-      top: isMobile ? 60 : "auto",
+      top: isMobile ? 63 : "auto",
       bottom: isMobile ? "auto" : 220,
       left: isMobile ? 10 : 20,
       right: isMobile ? 10 : "auto",
-      zIndex: isMobile ? 15 : 50,
+      zIndex: isMobile ? 9 : 50,
       display: "flex",
       gap: 10,
       justifyContent: isMobile ? "space-between" : "flex-start"
