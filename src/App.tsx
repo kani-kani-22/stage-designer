@@ -105,9 +105,6 @@ useEffect(() => {
   touchAction: isTouching ? "none" : "auto"
   }}
 
-  onPointerDown={(e) => {
-  // 何もしない（選択解除しない）
-  }}
 
   onPointerUp={() => {
     setIsTouching(false)
