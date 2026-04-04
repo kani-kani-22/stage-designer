@@ -82,20 +82,7 @@ useEffect(() => {
     > 
       <h1>舞台図エディタ</h1>
 
-      {/* 追加ボタン */}
-      <button
-  style={{
-    position: "fixed",
-    bottom: isMobile ? 80 : 220,
-    left: isMobile ? 20 : 300,
-    fontSize: 18,
-    padding: "14px 18px",
-    zIndex: 30
-  }}
-  onClick={() => setRightOpen(!rightOpen)}
->
-  パーツ
-</button>
+      
 <div style={{
   width: "100%",
   maxWidth: 1200,
@@ -360,10 +347,10 @@ useEffect(() => {
       </div>
    <div style={{
   position: "fixed",
-  bottom: 180,
-  right: 20,
+  bottom: 140,
+  right: 0,
   display: "grid",
-  gridTemplateColumns: isMobile ? "60px 60px 60px" : "100px 100px 100px",
+  gridTemplateColumns: isMobile ? "40px 40px 40px" : "100px 100px 100px",
   gap: 10,
   zIndex: 100
 }}>
@@ -431,9 +418,10 @@ useEffect(() => {
   <div />
 </div>
  <div
+ //~~~~~~幕スライダー~~~~~~~
   style={{
     position: "fixed",
-    bottom: isMobile ? "calc(45vh)" : 40,
+    bottom: isMobile ? "calc(25vh)" : 40,
     left: 0,
     width: "100%",
     background: "rgba(255,255,255,0.95)",
@@ -508,7 +496,7 @@ useEffect(() => {
   <div
     style={{
       position: "fixed",
-      top: isMobile ? 10 : "auto",
+      top: isMobile ? 40 : "auto",
       bottom: isMobile ? "auto" : 220,
       left: isMobile ? 10 : 20,
       right: isMobile ? 10 : "auto",
