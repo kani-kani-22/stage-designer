@@ -95,14 +95,22 @@ useEffect(() => {
 >
   パーツ
 </button>
+<div style={{
+  width: "100%",
+  maxWidth: 1200,
+  margin: "0 auto"
+}}>
 <svg
   id="stage-svg"
   viewBox={`0 0 ${stageWidth} ${stageHeight}`}
+  preserveAspectRatio="xMidYMid meet"
   style={{
-  width: "100%",
-  height: "70vh",
-  border: "1px solid black",
-  touchAction: isTouching ? "none" : "auto"
+    width: "100%",
+    aspectRatio: `${stageWidth} / ${stageHeight}`,
+    border: "1px solid black",
+    touchAction: isTouching ? "none" : "auto",
+    display: "block",
+    margin: "0 auto"
   }}
 
 
@@ -347,6 +355,7 @@ useEffect(() => {
         })}
         
       </svg>
+      </div>
    <div style={{
   position: "fixed",
   bottom: 180,
