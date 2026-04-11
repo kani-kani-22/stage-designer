@@ -210,16 +210,140 @@ useEffect(() => {
     style={{
       userSelect: "none",
       WebkitUserSelect: "none",
-      touchAction: "manipulation"
+      touchAction: "manipulation",
+      height: "100vh",
+      display: "flex",
+      flexDirection: "column"
     }}
     > 
       <h1>舞台図エディタ</h1>
+<div style={{
+  height: 60,
+  flexShrink: 0,
+  display: "flex",
+  gap: 10,
+  alignItems: "center",
+  padding: "0 10px",
+  background: "#fff",
+  zIndex: 50
+}}>
+  {/* ←ここに「SVG保存」「PNG保存」「パーツ」ボタンを移動 */}
+  {!isExporting && (
+  //^^^^^^^^^^保存・パーツ^^^^^^^^^^^^^^
+  <div
+    style={{
+      bottom: isMobile ? "auto" : 220,
+      left: isMobile ? 10 : 20,
+      right: isMobile ? 10 : "auto",
+      zIndex: isMobile ? 9 : 50,
+      display: "flex",
+      gap: 10,
+      justifyContent: isMobile ? "space-between" : "flex-start"
+    }}
+  >
+  <button
+  style={{
+    fontSize: isMobile ? 14 : 18,
+    padding: isMobile ? "10px 12px" : "12px 16px",
+    flex: isMobile ? 1 : "none"
+  }}
+  onClick={() => {
+    setIsExporting(true)
 
+    setTimeout(() => {
+    const svg = document.getElementById("stage-svg") as unknown as SVGSVGElement
+    
+    if (!svg) return
+    svg.setAttribute("width", String(stageWidth))
+    svg.setAttribute("height", String(stageHeight))
+    const serializer = new XMLSerializer()
+    const svgString = serializer.serializeToString(svg)
+
+    const blob = new Blob([svgString], { type: "image/svg+xml" })
+    const url = URL.createObjectURL(blob)
+    svg.setAttribute("viewBox", `0 0 ${stageWidth} ${stageHeight}`)
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
+    svg.style.background = "white"
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "stage.svg"
+    a.click()
+   setIsExporting(false)
+    URL.revokeObjectURL(url)
+    svg.setAttribute("width", "800")
+    svg.removeAttribute("height")
+    }, 100)
+  }}
+>
+  SVG保存
+</button>
+  <button
+  style={{
+    fontSize: isMobile ? 14 : 18,
+    padding: isMobile ? "10px 12px" : "12px 16px",
+    flex: isMobile ? 1 : "none"
+  }}
+  onClick={() => {
+    setIsExporting(true)
+
+    setTimeout(() => {
+    const svg = document.getElementById("stage-svg") as unknown as SVGSVGElement
+    if (!svg) return
+    svg.setAttribute("width", String(stageWidth))
+    svg.setAttribute("height", String(stageHeight))
+
+    const serializer = new XMLSerializer()
+    const svgString = serializer.serializeToString(svg)
+
+    const canvas = document.createElement("canvas")
+    canvas.width = stageWidth
+    canvas.height = stageHeight
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    const img = new Image()
+    const blob = new Blob([svgString], { type: "image/svg+xml" })
+    const url = URL.createObjectURL(blob)
+
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0)
+      URL.revokeObjectURL(url)
+
+      const pngUrl = canvas.toDataURL("image/png")
+
+      const a = document.createElement("a")
+      a.href = pngUrl
+      a.download = "stage.png"
+      a.click()
+      setIsExporting(false)
+      
+    }
+    img.src = url
+    svg.setAttribute("width", "800")
+    svg.removeAttribute("height")
+    }, 100)
+  }}
+>
+  PNG保存
+</button>
+<button
+  //パーツ追加ボタン
+  onClick={() => setRightOpen(true)}
+  style={{
+    fontSize: isMobile ? 14 : 18,
+    padding: isMobile ? "10px 12px" : "12px 16px",
+    flex: isMobile ? 1 : "none"
+  }}
+>
+  パーツ
+</button>
+</div>
+)}
+</div>
       
 <div style={{
-  width: "100%",
-  maxWidth: 1200,
-  margin: "0 auto"
+   flex: 1,
+    overflow: "hidden"
 }}>
 <svg
   id="stage-svg"
@@ -227,7 +351,6 @@ useEffect(() => {
   preserveAspectRatio="xMidYMid meet"
   style={{
     width: "100%",
-    marginTop: isMobile ? "12vh" : 0,
     aspectRatio: `${stageWidth} / ${stageHeight}`,
     border: "1px solid black",
     touchAction: isTouching ? "none" : "auto",
@@ -656,119 +779,6 @@ useEffect(() => {
     maxWidth: 300,
   }}
 />
-{!isExporting && (
-  //^^^^^^^^^^保存・パーツ^^^^^^^^^^^^^^
-  <div
-    style={{
-      position: "fixed",
-      top: isMobile ? "8vh" : "auto",
-      bottom: isMobile ? "auto" : 220,
-      left: isMobile ? 10 : 20,
-      right: isMobile ? 10 : "auto",
-      zIndex: isMobile ? 9 : 50,
-      display: "flex",
-      gap: 10,
-      justifyContent: isMobile ? "space-between" : "flex-start"
-    }}
-  >
-  <button
-  style={{
-    fontSize: isMobile ? 14 : 18,
-    padding: isMobile ? "10px 12px" : "12px 16px",
-    flex: isMobile ? 1 : "none"
-  }}
-  onClick={() => {
-    setIsExporting(true)
-
-    setTimeout(() => {
-    const svg = document.getElementById("stage-svg") as unknown as SVGSVGElement
-    
-    if (!svg) return
-    svg.setAttribute("width", String(stageWidth))
-    svg.setAttribute("height", String(stageHeight))
-    const serializer = new XMLSerializer()
-    const svgString = serializer.serializeToString(svg)
-
-    const blob = new Blob([svgString], { type: "image/svg+xml" })
-    const url = URL.createObjectURL(blob)
-    svg.setAttribute("viewBox", `0 0 ${stageWidth} ${stageHeight}`)
-    svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
-    svg.style.background = "white"
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "stage.svg"
-    a.click()
-   setIsExporting(false)
-    URL.revokeObjectURL(url)
-    svg.setAttribute("width", "800")
-    svg.removeAttribute("height")
-    }, 100)
-  }}
->
-  SVG保存
-</button>
-  <button
-  style={{
-    fontSize: isMobile ? 14 : 18,
-    padding: isMobile ? "10px 12px" : "12px 16px",
-    flex: isMobile ? 1 : "none"
-  }}
-  onClick={() => {
-    setIsExporting(true)
-
-    setTimeout(() => {
-    const svg = document.getElementById("stage-svg") as unknown as SVGSVGElement
-    if (!svg) return
-    svg.setAttribute("width", String(stageWidth))
-    svg.setAttribute("height", String(stageHeight))
-
-    const serializer = new XMLSerializer()
-    const svgString = serializer.serializeToString(svg)
-
-    const canvas = document.createElement("canvas")
-    canvas.width = stageWidth
-    canvas.height = stageHeight
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    const img = new Image()
-    const blob = new Blob([svgString], { type: "image/svg+xml" })
-    const url = URL.createObjectURL(blob)
-
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0)
-      URL.revokeObjectURL(url)
-
-      const pngUrl = canvas.toDataURL("image/png")
-
-      const a = document.createElement("a")
-      a.href = pngUrl
-      a.download = "stage.png"
-      a.click()
-      setIsExporting(false)
-      
-    }
-    img.src = url
-    svg.setAttribute("width", "800")
-    svg.removeAttribute("height")
-    }, 100)
-  }}
->
-  PNG保存
-</button>
-<button
-  //パーツ追加ボタン
-  onClick={() => setRightOpen(true)}
-  style={{
-    fontSize: isMobile ? 14 : 18,
-    padding: isMobile ? "10px 12px" : "12px 16px",
-    flex: isMobile ? 1 : "none"
-  }}
->
-  パーツ
-</button>
-</div>
-)}
 
      {/* 右パネル */}
      {!isExporting && (
@@ -925,7 +935,10 @@ setRightOpen(false)
 }}>
   ロクロク
 </button>
-<button onClick={() => setShowCustom(true)}>
+<button onClick={() => {
+  setShowCustom(true)
+  setRightOpen(false)
+}}>
   カスタム追加
 </button>
     </div> 
@@ -1010,8 +1023,9 @@ setRightOpen(false)
       position: "fixed",
       bottom: isMobile ? "14vh" : 130,
       left: 0,
-      width: "70%",
+      width: "100%",
       background: "#ddd",
+      paddingRight: isMobile ? 120 : 160, 
       padding: isMobile ? "10px": 10,
       zIndex: 60,
       display: "flex",
@@ -1126,7 +1140,6 @@ setRightOpen(false)
   }}
   />
 </div>
-//
 
   </div>
 )}
