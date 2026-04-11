@@ -12,7 +12,23 @@ type Obj = {
   zIndex: number
   name: string
 }
+const getRotation = (el: Element): number => {
+  let current: Element | null = el
+  let rotation = 0
 
+  while (current) {
+    const transform = current.getAttribute("transform")
+    if (transform) {
+      const match = transform.match(/rotate\(([-\d.]+)(?:[ ,]+[-\d.]+[ ,]+[-\d.]+)?\)/)
+      if (match) {
+        rotation += Number(match[1])
+      }
+    }
+    current = current.parentElement
+  }
+
+  return rotation
+}
 function App() {
   const [objects, setObjects] = useState<Obj[]>([])
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,6 +44,8 @@ function App() {
   const rects = Array.from(doc.querySelectorAll("rect")).filter(r => {
   const w = Number(r.getAttribute("width") || 0)
   const h = Number(r.getAttribute("height") || 0)
+  const x = Number(r.getAttribute("x") || 0)
+  const y = Number(r.getAttribute("y") || 0)
 
   // ステージサイズ除外
   if (w === stageWidth && h === stageHeight) return false
@@ -36,6 +54,8 @@ function App() {
   if (w > 500 && h > 500) return false
     // strokeがnoneなら除外（背景防止）
 if (r.getAttribute("stroke") === "none") return false
+// 左上固定のゴミ除外（←これ追加）
+  if (x === 0 && y === 0 && w >= 180 && h >= 180) return false
   return true
 })
   let counters = {
@@ -75,15 +95,7 @@ if (r.getAttribute("stroke") === "none") return false
   }
 
   // 回転取得
-  const transform = r.getAttribute("transform")
-let rotation = 0
-
-if (transform) {
-  const match = transform.match(/rotate\(([-\d.]+)(?:\s+[-\d.]+\s+[-\d.]+)?\)/)
-  if (match) {
-    rotation = Number(match[1])
-  }
-}
+ const rotation = getRotation(r)
 
   return {
     id: Date.now() + i,
@@ -122,7 +134,7 @@ if (transform) {
 }) // 0〜1
   const [isTouching, setIsTouching] = useState(false)
   const isMobile = window.innerWidth < 768
-  const [customSize, setCustomSize] = useState({ w: 100, h: 100 })
+ const [customSize, setCustomSize] = useState({ w: "100", h: "100" })
   const getNextNumber = (type: string) => {
   return objects.filter(o => o.name.startsWith(type)).length + 1
 }
@@ -204,7 +216,7 @@ useEffect(() => {
   preserveAspectRatio="xMidYMid meet"
   style={{
     width: "100%",
-    height: isMobile ? "55vh" : "70vh",
+    height: "auto",
     aspectRatio: `${stageWidth} / ${stageHeight}`,
     border: "1px solid black",
     touchAction: isTouching ? "none" : "auto",
@@ -315,7 +327,7 @@ useEffect(() => {
   stroke="black"
   strokeDasharray="10 10"
   strokeWidth="3"
-  opacity={curtain.gauze}
+  opacity={curtain.gauze ? 1 : 0}
 />
 
 {/* 大黒幕（上から0.5間） */}
@@ -326,7 +338,7 @@ useEffect(() => {
   y2={182 * 0.5}
   stroke="black"
   strokeWidth="5"
-  opacity={curtain.back}
+  opacity={curtain.back ? 1 : 0}
 />
 
 
@@ -615,10 +627,8 @@ useEffect(() => {
   accept=".svg"
   onChange={handleImport}
   style={{
-    position: "fixed",
-    bottom: 180,
-    left: 10,
-    zIndex: 50
+    display: "block",
+    margin: "10px auto",
   }}
 />
 {!isExporting && (
@@ -959,7 +969,7 @@ setRightOpen(false)
         onChange={(e) => {
           const value = Number(e.target.value)
           setObjects(objects.map(obj =>
-            obj.id === selectedObj.id ? { ...obj, x: value } : obj
+            obj.id === selectedObj.id ? { ...obj, x: Math.max(0, Math.min(stageWidth - obj.width, value)) } : obj
           ))
         }}
       />
@@ -973,7 +983,7 @@ setRightOpen(false)
         onChange={(e) => {
           const value = Number(e.target.value)
           setObjects(objects.map(obj =>
-            obj.id === selectedObj.id ? { ...obj, y: value } : obj
+            obj.id === selectedObj.id ? { ...obj, y: Math.max(0, Math.min(stageHeight - obj.height, value)) } : obj
           ))
         }}
       />
@@ -1010,21 +1020,27 @@ setRightOpen(false)
     border: "1px solid #ccc"
   }}>
     <h3>カスタムサイズ</h3>
-
+    <div>
+      幅:
     <input
-      type="number"
-      value={customSize.w}
-      onChange={(e) =>
-        setCustomSize({ ...customSize, w: Number(e.target.value) })
-      }
-    />
+  value={customSize.w}
+  onChange={(e) =>
+    setCustomSize({ ...customSize, w: e.target.value })
+  }
+/>
+    cm
+    </div>
+    <div>
+      幅:
     <input
-      type="number"
       value={customSize.h}
       onChange={(e) =>
-        setCustomSize({ ...customSize, h: Number(e.target.value) })
+        setCustomSize({ ...customSize, h: e.target.value })
       }
     />
+    cm
+    </div>
+
 
     <button
       onClick={() => {
@@ -1033,8 +1049,8 @@ setRightOpen(false)
           type: "panel" as const,
           x: 100,
           y: 100,
-          width: customSize.w,
-          height: customSize.h,
+          width: Number(customSize.w),
+          height: Number(customSize.h),
           rotation: 0,
           zIndex: objects.length,
           name: `カスタム${getNextNumber("カスタム")}`
