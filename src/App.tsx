@@ -339,7 +339,9 @@ useEffect(() => {
       
 <div style={{
    flex: 1,
-    overflow: "hidden"
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center"
 }}>
 <svg
   id="stage-svg"
@@ -500,7 +502,24 @@ useEffect(() => {
           stroke="black"
           strokeWidth="4"
         />
+        {/* 逆T字マーク */}
+<g stroke="black" strokeWidth="3">
+  {/* 横棒 */}
+  <line
+    x1={stageWidth / 2 - 40}
+    x2={stageWidth / 2 + 40}
+    y1={stageHeight - 140}
+    y2={stageHeight - 140}
+  />
 
+  {/* 縦棒（下に伸びる） */}
+  <line
+    x1={stageWidth / 2}
+    x2={stageWidth / 2}
+    y1={stageHeight - 140}
+    y2={stageHeight - 80}
+  />
+</g>
         {/* オブジェクト */}
         {[...objects].sort((a, b) => a.zIndex - b.zIndex).map((obj) => {
           const centerX = obj.x + obj.width / 2
@@ -642,6 +661,15 @@ useEffect(() => {
         })}
         
       </svg>
+      <input
+      type="file"
+      accept=".svg"
+      onChange={handleImport}
+      style={{
+     marginTop: 10,
+     marginBottom: 10
+      }}
+/>
       </div>
    <div style={{
   position: "fixed",
@@ -764,19 +792,6 @@ useEffect(() => {
     </div>
   ))}
 </div>
-<input
-  type="file"
-  accept=".svg"
-  onChange={handleImport}
-  style={{
-    position: "fixed", 
-    top: 70, 
-    margin: "10px 0 10px auto",
-    display: "block",
-    width: "90%",
-    maxWidth: 300,
-  }}
-/>
 
      {/* 右パネル */}
      {!isExporting && (
