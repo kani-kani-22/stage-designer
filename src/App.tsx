@@ -11,6 +11,7 @@ type Obj = {
   rotation: number
   zIndex: number
   name: string
+  shape?: "rect" | "ellipse"
 }
 const getRotation = (el: Element): number => {
   let current: Element | null = el
@@ -31,6 +32,10 @@ const getRotation = (el: Element): number => {
 }
 function App() {
   const [objects, setObjects] = useState<Obj[]>([])
+  const [customShape, setCustomShape] = useState<"rect" | "ellipse">("rect")
+  const [editX, setEditX] = useState("")
+  const [editY, setEditY] = useState("")
+  const [editRot, setEditRot] = useState("")
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0]
   if (!file) return
@@ -149,8 +154,8 @@ useEffect(() => {
         obj.id === selectedId
           ? {
               ...obj,
-              x: obj.x + moveDir.x * 5,
-              y: obj.y + moveDir.y * 5
+              x: Math.max(0, Math.min(stageWidth - obj.width, obj.x + moveDir.x * 5)),
+y: Math.max(0, Math.min(stageHeight - obj.height, obj.y + moveDir.y * 5))
             }
           : obj
       )
@@ -194,6 +199,12 @@ useEffect(() => {
     window.removeEventListener("mouseup", stop)
   }
 }, [])
+useEffect(() => {
+  if (!selectedObj) return
+  setEditX(String(Math.round(selectedObj.x)))
+  setEditY(String(Math.round(selectedObj.y)))
+  setEditRot(String(Math.round(selectedObj.rotation)))
+}, [selectedObj])
   return (
     <div
     style={{
@@ -216,7 +227,7 @@ useEffect(() => {
   preserveAspectRatio="xMidYMid meet"
   style={{
     width: "100%",
-    height: "auto",
+    marginTop: isMobile ? "12vh" : 0,
     aspectRatio: `${stageWidth} / ${stageHeight}`,
     border: "1px solid black",
     touchAction: isTouching ? "none" : "auto",
@@ -399,15 +410,27 @@ useEffect(() => {
 }}
             >
               {/* 本体 */}
-              <rect
-               x={obj.x}
-               y={obj.y}
-                width={obj.width}
-               height={obj.height}
-                fill="white"
-               stroke="black"
-               strokeWidth="4"
-              />
+             {obj.shape === "ellipse" ? (
+  <ellipse
+    cx={obj.x + obj.width / 2}
+    cy={obj.y + obj.height / 2}
+    rx={obj.width / 2}
+    ry={obj.height / 2}
+    fill="white"
+    stroke="black"
+    strokeWidth="4"
+  />
+) : (
+  <rect
+    x={obj.x}
+    y={obj.y}
+    width={obj.width}
+    height={obj.height}
+    fill="white"
+    stroke="black"
+    strokeWidth="4"
+  />
+)}
               {/* 選択UI */}
               {selectedId === obj.id && !isExporting && (
                 <>
@@ -503,8 +526,8 @@ useEffect(() => {
       </div>
    <div style={{
   position: "fixed",
-  bottom: 130,
-  right: 10,
+  bottom: "15vh",
+  right: "2vw",
   display: "grid",
   gridTemplateColumns: isMobile ? "50px 50px 50px" : "100px 100px 100px",
   gridTemplateRows: isMobile ? "50px 50px 50px" : "100px 100px 100px",
@@ -580,7 +603,7 @@ useEffect(() => {
   bottom: 0,
   left: 0,
   width: "100%",
-  height: isMobile ? 70 : 120,
+  height: isMobile ? "12vh" : 120,
   background: "#fff",
   overflowX: "auto",
   display: "flex",
@@ -627,8 +650,10 @@ useEffect(() => {
   accept=".svg"
   onChange={handleImport}
   style={{
+    margin: "10px 0 10px auto",
     display: "block",
-    margin: "10px auto",
+    width: "90%",
+    maxWidth: 300,
   }}
 />
 {!isExporting && (
@@ -636,7 +661,7 @@ useEffect(() => {
   <div
     style={{
       position: "fixed",
-      top: isMobile ? 63 : "auto",
+      top: isMobile ? "8vh" : "auto",
       bottom: isMobile ? "auto" : 220,
       left: isMobile ? 10 : 20,
       right: isMobile ? 10 : "auto",
@@ -904,15 +929,16 @@ setRightOpen(false)
 </button>
     </div> 
     )}
+ //下パネル
 {!isExporting && selectedObj && (
   <div
     style={{
       position: "fixed",
-      bottom: isMobile ? 90 : 130,
+      bottom: isMobile ? "14vh" : 130,
       left: 0,
       width: "100%",
       background: "#ddd",
-      padding: isMobile ? 6 : 10,
+      padding: isMobile ? "10vh": 10,
       zIndex: 20,
       display: "flex",
       gap: 10,
@@ -964,50 +990,66 @@ setRightOpen(false)
     <div>
       X:
       <input
-        type="number"
-        value={Math.round(selectedObj.x)}
-        onChange={(e) => {
-          const value = Number(e.target.value)
-          setObjects(objects.map(obj =>
-            obj.id === selectedObj.id ? { ...obj, x: Math.max(0, Math.min(stageWidth - obj.width, value)) } : obj
-          ))
-        }}
-      />
+      type="text"
+      value={editX}
+      onChange={(e) => {
+      setEditX(e.target.value)
+      }}
+      onBlur={() => {
+      const value = Number(editX)
+      if (!isNaN(value)) {
+      setObjects(objects.map(obj =>
+        obj.id === selectedObj.id
+          ? { ...obj, x: Math.max(0, Math.min(stageWidth - obj.width, value)) }
+          : obj
+        ))
+      }
+      }}
+/>
     </div>
 
     <div>
       Y:
       <input
-        type="number"
-        value={Math.round(selectedObj.y)}
-        onChange={(e) => {
-          const value = Number(e.target.value)
-          setObjects(objects.map(obj =>
-            obj.id === selectedObj.id ? { ...obj, y: Math.max(0, Math.min(stageHeight - obj.height, value)) } : obj
-          ))
-        }}
-      />
+  type="text"
+  value={editY}
+  onChange={(e) => {
+    setEditY(e.target.value)
+  }}
+  onBlur={() => {
+    const value = Number(editY)
+    if (!isNaN(value)) {
+      setObjects(objects.map(obj =>
+        obj.id === selectedObj.id
+          ? { ...obj, y: Math.max(0, Math.min(stageHeight - obj.height, value)) }
+          : obj
+      ))
+    }
+  }}
+/>
     </div>
     <div>
   回転:
   <input
-    type="number"
-    step="5"
-    min="0"
-    max="360"
-    value={Math.round(selectedObj.rotation)}
-    onChange={(e) => {
-      const raw = Number(e.target.value)
-      const value = ((raw % 360) + 360) % 360
+  type="text"
+  value={editRot}
+  onChange={(e) => {
+    setEditRot(e.target.value)
+  }}
+  onBlur={() => {
+    const value = Number(editRot)
+    if (!isNaN(value)) {
       setObjects(objects.map(obj =>
         obj.id === selectedObj.id
-          ? { ...obj, rotation: value }
+          ? { ...obj, rotation: Math.round(selectedObj.rotation) }
           : obj
       ))
-    }}
+    }
+  }}
     style={{ width: 60 }}
   />
 </div>
+//
 {showCustom && (
   <div style={{
     position: "fixed",
@@ -1020,6 +1062,18 @@ setRightOpen(false)
     border: "1px solid #ccc"
   }}>
     <h3>カスタムサイズ</h3>
+    <div>
+    形:
+    <select
+    value={customShape}
+    onChange={(e) =>
+      setCustomShape(e.target.value as "rect" | "ellipse")
+    }
+    >
+    <option value="rect">長方形</option>
+    <option value="ellipse">丸/楕円</option>
+    </select>
+    </div>
     <div>
       幅:
     <input
@@ -1053,6 +1107,7 @@ setRightOpen(false)
           height: Number(customSize.h),
           rotation: 0,
           zIndex: objects.length,
+          shape: customShape ,
           name: `カスタム${getNextNumber("カスタム")}`
         }
 
