@@ -218,7 +218,7 @@ useEffect(() => {
     > 
       <h1>舞台図エディタ</h1>
 <div style={{
-  height: 60,
+  minHeight: 50,
   flexShrink: 0,
   display: "flex",
   gap: 10,
@@ -232,20 +232,16 @@ useEffect(() => {
   //^^^^^^^^^^保存・パーツ^^^^^^^^^^^^^^
   <div
     style={{
-      bottom: isMobile ? "auto" : 220,
-      left: isMobile ? 10 : 20,
-      right: isMobile ? 10 : "auto",
-      zIndex: isMobile ? 9 : 50,
       display: "flex",
-      gap: 10,
-      justifyContent: isMobile ? "space-between" : "flex-start"
+    gap: 6,
+    width: "100%",
     }}
   >
   <button
   style={{
-    fontSize: isMobile ? 14 : 18,
-    padding: isMobile ? "10px 12px" : "12px 16px",
-    flex: isMobile ? 1 : "none"
+    fontSize: isMobile ? 13 : 16,
+    padding: isMobile ? "6px 4px" : "8px 10px",
+    flex: 1
   }}
   onClick={() => {
     setIsExporting(true)
@@ -279,9 +275,9 @@ useEffect(() => {
 </button>
   <button
   style={{
-    fontSize: isMobile ? 14 : 18,
-    padding: isMobile ? "10px 12px" : "12px 16px",
-    flex: isMobile ? 1 : "none"
+   fontSize: isMobile ? 13 : 16,
+    padding: isMobile ? "6px 4px" : "8px 10px",
+    flex: 1
   }}
   onClick={() => {
     setIsExporting(true)
@@ -330,9 +326,9 @@ useEffect(() => {
   //パーツ追加ボタン
   onClick={() => setRightOpen(true)}
   style={{
-    fontSize: isMobile ? 14 : 18,
-    padding: isMobile ? "10px 12px" : "12px 16px",
-    flex: isMobile ? 1 : "none"
+    fontSize: isMobile ? 13 : 16,
+    padding: isMobile ? "6px 4px" : "8px 10px",
+    flex: 1
   }}
 >
   パーツ
@@ -773,6 +769,8 @@ useEffect(() => {
   accept=".svg"
   onChange={handleImport}
   style={{
+    position: "fixed", 
+    top: 70, 
     margin: "10px 0 10px auto",
     display: "block",
     width: "90%",
@@ -1026,16 +1024,17 @@ setRightOpen(false)
       width: "100%",
       background: "#ddd",
       paddingRight: isMobile ? 120 : 160, 
-      padding: isMobile ? "10px": 10,
+      padding: 10,
       zIndex: 60,
       display: "flex",
-      gap: 10,
+       flexDirection: "column", 
+      gap: 6,
       flexWrap: "wrap",
       alignItems: "flex-start",
       justifyContent: "flex-start"
     }}
   >
-
+    <div style={{ display: "flex", gap: 10 }}>
     {/* 名前 */}
     {!isMobile && <strong>{selectedObj.name}</strong>}
     {/* 削除 */}
@@ -1074,7 +1073,9 @@ setRightOpen(false)
     >
       後
     </button>
+    </div>
 
+    <div style={{ display: "flex", gap: 10 }}>
     {/* 座標 */}
     <div>
       X:
@@ -1119,6 +1120,8 @@ setRightOpen(false)
   }}
 />
     </div>
+    </div>
+
     <div>
   回転:
   <input
