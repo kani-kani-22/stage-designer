@@ -25,17 +25,27 @@ function App() {
     const parser = new DOMParser()
     const doc = parser.parseFromString(text, "image/svg+xml")
 
-   const rects = Array.from(doc.querySelectorAll("rect")).filter(r => {
+  const rects = Array.from(doc.querySelectorAll("rect")).filter(r => {
   const w = Number(r.getAttribute("width") || 0)
   const h = Number(r.getAttribute("height") || 0)
 
-  // ステージサイズは除外
-  if (w > 1000 && h > 1000) return false
+  // ステージサイズ除外
+  if (w === stageWidth && h === stageHeight) return false
 
+  // 明らかに大きすぎるものも除外
+  if (w > 500 && h > 500) return false
+    // strokeがnoneなら除外（背景防止）
+if (r.getAttribute("stroke") === "none") return false
   return true
 })
-
-   const newObjs = rects.map((r, i) => {
+  let counters = {
+  パネル: 0,
+  サブロク: 0,
+  サンサン: 0,
+  ロクロク: 0,
+  カスタム: 0
+}
+  const newObjs = rects.map((r, i) => {
   const w = Number(r.getAttribute("width") || 50)
   const h = Number(r.getAttribute("height") || 50)
 
@@ -43,27 +53,37 @@ function App() {
   let type: "panel" | "platform" = "panel"
 
   if (w === 182 && h === 182) {
-    name = `ロクロク${i + 1}`
+    counters.ロクロク++
+    name = `ロクロク${counters.ロクロク}`
     type = "platform"
   } else if (w === 91 && h === 182) {
-    name = `サブロク${i + 1}`
+    counters.サブロク++
+    name = `サブロク${counters.サブロク}`
     type = "platform"
   } else if (w === 91 && h === 91) {
-    name = `サンサン${i + 1}`
+    counters.サンサン++
+    name = `サンサン${counters.サンサン}`
     type = "platform"
+  } else if (w === 91 && h === 10) {
+    counters.パネル++
+    name = `パネル${counters.パネル}`
+    type = "panel"
   } else {
-    name = `パネル${i + 1}`
+    counters.カスタム++
+    name = `カスタム${counters.カスタム}`
     type = "panel"
   }
 
-  // ⭐ 回転取得
+  // 回転取得
   const transform = r.getAttribute("transform")
-  let rotation = 0
+let rotation = 0
 
-  if (transform?.includes("rotate")) {
-    const match = transform.match(/rotate\(([-\d.]+)/)
-    if (match) rotation = Number(match[1])
+if (transform) {
+  const match = transform.match(/rotate\(([-\d.]+)(?:\s+[-\d.]+\s+[-\d.]+)?\)/)
+  if (match) {
+    rotation = Number(match[1])
   }
+}
 
   return {
     id: Date.now() + i,
@@ -318,7 +338,16 @@ useEffect(() => {
         </defs>
 
         <rect x="0" y="0" width={stageWidth} height={stageHeight} fill="url(#grid)" />
-
+        //センターライン
+        <line
+         x1={stageWidth / 2}
+          x2={stageWidth / 2}
+          y1="0"
+          y2={stageHeight}
+          stroke="#888"
+          strokeDasharray="10 10"
+          strokeWidth="2"
+          />
         {/* 外枠 */}
         <rect
           x="0"
@@ -587,9 +616,9 @@ useEffect(() => {
   onChange={handleImport}
   style={{
     position: "fixed",
-    top: 10,
-    right: 10,
-    zIndex: 200
+    bottom: 180,
+    left: 10,
+    zIndex: 50
   }}
 />
 {!isExporting && (
@@ -726,9 +755,6 @@ useEffect(() => {
   <button onClick={() => setRightOpen(false)}>✕</button>
 </div>
 <div>
- <button onClick={() => setShowCustom(true)}>
-  カスタム追加
-</button>
  <div>
   中割幕:
   <input
@@ -862,6 +888,9 @@ setSelectedId(newObj.id)
 setRightOpen(false)
 }}>
   ロクロク
+</button>
+<button onClick={() => setShowCustom(true)}>
+  カスタム追加
 </button>
     </div> 
     )}
@@ -1008,7 +1037,7 @@ setRightOpen(false)
           height: customSize.h,
           rotation: 0,
           zIndex: objects.length,
-          name: `カスタム${objects.length + 1}`
+          name: `カスタム${getNextNumber("カスタム")}`
         }
 
         setObjects([...objects, newObj])
