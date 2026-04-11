@@ -227,7 +227,7 @@ useEffect(() => {
   preserveAspectRatio="xMidYMid meet"
   style={{
     width: "100%",
-    marginTop: isMobile ? "12vh" : 0,
+    marginTop: isMobile ? "28vh" : 0,
     aspectRatio: `${stageWidth} / ${stageHeight}`,
     border: "1px solid black",
     touchAction: isTouching ? "none" : "auto",
@@ -929,8 +929,9 @@ setRightOpen(false)
 </button>
     </div> 
     )}
- //下パネル
+
 {!isExporting && selectedObj && (
+  //下パネル
   <div
     style={{
       position: "fixed",
@@ -943,7 +944,7 @@ setRightOpen(false)
       display: "flex",
       gap: 10,
       flexWrap: "wrap",
-      alignItems: "center"
+      alignItems: "left"
     }}
   >
 
@@ -1058,7 +1059,7 @@ setRightOpen(false)
     transform: "translate(-50%, -50%)",
     background: "#fff",
     padding: 20,
-    zIndex: 999,
+    zIndex: 101,
     border: "1px solid #ccc"
   }}>
     <h3>カスタムサイズ</h3>
@@ -1101,8 +1102,8 @@ setRightOpen(false)
         const newObj = {
           id: Date.now(),
           type: "panel" as const,
-          x: 100,
-          y: 100,
+          x: 1001,
+          y: 819,
           width: Number(customSize.w),
           height: Number(customSize.h),
           rotation: 0,
