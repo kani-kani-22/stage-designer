@@ -227,7 +227,7 @@ useEffect(() => {
   preserveAspectRatio="xMidYMid meet"
   style={{
     width: "100%",
-    marginTop: isMobile ? "28vh" : 0,
+    marginTop: isMobile ? "12vh" : 0,
     aspectRatio: `${stageWidth} / ${stageHeight}`,
     border: "1px solid black",
     touchAction: isTouching ? "none" : "auto",
@@ -532,7 +532,7 @@ useEffect(() => {
   gridTemplateColumns: isMobile ? "50px 50px 50px" : "100px 100px 100px",
   gridTemplateRows: isMobile ? "50px 50px 50px" : "100px 100px 100px",
   gap: 10,
-  zIndex: 100
+  zIndex: 90
 }}>
   <div />
   <button
@@ -609,7 +609,7 @@ useEffect(() => {
   display: "flex",
   gap: 10,
   padding: 10,
-  zIndex: 40
+  zIndex: 85
 }}>
   {objects.map(obj => (
     <div
@@ -776,13 +776,14 @@ useEffect(() => {
       style={{
         position: "fixed",
         top: 0,
+        bottom: 0,
         right: rightOpen ? 0 : (isMobile ? "-100%" : -200),
         width: isMobile ? "50%" : 200,
-        height: "100%",
+        height: "100vh",
         background: "#eee",
         transition: "0.3s",
         padding: 10,
-        zIndex: 10,
+        zIndex: 50,
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -929,128 +930,6 @@ setRightOpen(false)
 </button>
     </div> 
     )}
-
-{!isExporting && selectedObj && (
-  //下パネル
-  <div
-    style={{
-      position: "fixed",
-      bottom: isMobile ? "14vh" : 130,
-      left: 0,
-      width: "100%",
-      background: "#ddd",
-      padding: isMobile ? "10vh": 10,
-      zIndex: 20,
-      display: "flex",
-      gap: 10,
-      flexWrap: "wrap",
-      alignItems: "left"
-    }}
-  >
-
-    {/* 名前 */}
-    {!isMobile && <strong>{selectedObj.name}</strong>}
-    {/* 削除 */}
-    <button
-      style={{ fontSize: 18, padding: "10px 14px", userSelect: "none",
-    WebkitUserSelect: "none" }}
-      onClick={() => {
-        setObjects(objects.filter(o => o.id !== selectedObj.id))
-        setSelectedId(null)
-      }}
-    >
-      削除
-    </button>
-
-
-    {/* 前面 */}
-    <button
-      style={{ fontSize: 18, padding: "10px 14px" }}
-      onClick={() => {
-        setObjects(objects.map(o =>
-          o.id === selectedObj.id ? { ...o, zIndex: o.zIndex + 1 } : o
-        ))
-      }}
-    >
-      前
-    </button>
-
-    {/* 背面 */}
-    <button
-      style={{ fontSize: 18, padding: "10px 14px" }}
-      onClick={() => {
-        setObjects(objects.map(o =>
-          o.id === selectedObj.id ? { ...o, zIndex: o.zIndex - 1 } : o
-        ))
-      }}
-    >
-      後
-    </button>
-
-    {/* 座標 */}
-    <div>
-      X:
-      <input
-      type="text"
-      value={editX}
-      onChange={(e) => {
-      setEditX(e.target.value)
-      }}
-      onBlur={() => {
-      const value = Number(editX)
-      if (!isNaN(value)) {
-      setObjects(objects.map(obj =>
-        obj.id === selectedObj.id
-          ? { ...obj, x: Math.max(0, Math.min(stageWidth - obj.width, value)) }
-          : obj
-        ))
-      }
-      }}
-/>
-    </div>
-
-    <div>
-      Y:
-      <input
-  type="text"
-  value={editY}
-  onChange={(e) => {
-    setEditY(e.target.value)
-  }}
-  onBlur={() => {
-    const value = Number(editY)
-    if (!isNaN(value)) {
-      setObjects(objects.map(obj =>
-        obj.id === selectedObj.id
-          ? { ...obj, y: Math.max(0, Math.min(stageHeight - obj.height, value)) }
-          : obj
-      ))
-    }
-  }}
-/>
-    </div>
-    <div>
-  回転:
-  <input
-  type="text"
-  value={editRot}
-  onChange={(e) => {
-    setEditRot(e.target.value)
-  }}
-  onBlur={() => {
-    const value = Number(editRot)
-    if (!isNaN(value)) {
-      setObjects(objects.map(obj =>
-        obj.id === selectedObj.id
-          ? { ...obj, rotation: Math.round(selectedObj.rotation) }
-          : obj
-      ))
-    }
-  }}
-    style={{ width: 60 }}
-  />
-</div>
-//
 {showCustom && (
   <div style={{
     position: "fixed",
@@ -1059,7 +938,7 @@ setRightOpen(false)
     transform: "translate(-50%, -50%)",
     background: "#fff",
     padding: 20,
-    zIndex: 101,
+    zIndex: 1000,
     border: "1px solid #ccc"
   }}>
     <h3>カスタムサイズ</h3>
@@ -1124,6 +1003,131 @@ setRightOpen(false)
     <button onClick={() => setShowCustom(false)}>閉じる</button>
   </div>
 )}
+{!isExporting && selectedObj && (
+  //下パネル
+  <div
+    style={{
+      position: "fixed",
+      bottom: isMobile ? "14vh" : 130,
+      left: 0,
+      width: "70%",
+      background: "#ddd",
+      padding: isMobile ? "10px": 10,
+      zIndex: 60,
+      display: "flex",
+      gap: 10,
+      flexWrap: "wrap",
+      alignItems: "flex-start",
+      justifyContent: "flex-start"
+    }}
+  >
+
+    {/* 名前 */}
+    {!isMobile && <strong>{selectedObj.name}</strong>}
+    {/* 削除 */}
+    <button
+      style={{ fontSize: 18, padding: "10px 14px", userSelect: "none",
+    WebkitUserSelect: "none" }}
+      onClick={() => {
+        setObjects(objects.filter(o => o.id !== selectedObj.id))
+        setSelectedId(null)
+      }}
+    >
+      削除
+    </button>
+
+
+    {/* 前面 */}
+    <button
+      style={{ fontSize: 18, padding: "10px 14px" }}
+      onClick={() => {
+        setObjects(objects.map(o =>
+          o.id === selectedObj.id ? { ...o, zIndex: o.zIndex + 1 } : o
+        ))
+      }}
+    >
+      前
+    </button>
+
+    {/* 背面 */}
+    <button
+      style={{ fontSize: 18, padding: "10px 14px" }}
+      onClick={() => {
+        setObjects(objects.map(o =>
+          o.id === selectedObj.id ? { ...o, zIndex: o.zIndex - 1 } : o
+        ))
+      }}
+    >
+      後
+    </button>
+
+    {/* 座標 */}
+    <div>
+      X:
+      <input
+      style={{ width: 60 }}
+      type="text"
+      value={editX}
+      onChange={(e) => {
+      setEditX(e.target.value)
+      }}
+      onBlur={() => {
+      const value = Number(editX)
+      if (!isNaN(value)) {
+      setObjects(objects.map(obj =>
+        obj.id === selectedObj.id
+          ? { ...obj, x: Math.max(0, Math.min(stageWidth - obj.width, value)) }
+          : obj
+        ))
+      }
+      }}
+/>
+    </div>
+
+    <div>
+      Y:
+      <input
+      style={{ width: 60 }}
+  type="text"
+  value={editY}
+  onChange={(e) => {
+    setEditY(e.target.value)
+  }}
+  onBlur={() => {
+    const value = Number(editY)
+    if (!isNaN(value)) {
+      setObjects(objects.map(obj =>
+        obj.id === selectedObj.id
+          ? { ...obj, y: Math.max(0, Math.min(stageHeight - obj.height, value)) }
+          : obj
+      ))
+    }
+  }}
+/>
+    </div>
+    <div>
+  回転:
+  <input
+  style={{ width: 60 }}
+  type="text"
+  value={editRot}
+  onChange={(e) => {
+    setEditRot(e.target.value)
+  }}
+  onBlur={() => {
+    const value = Number(editRot)
+    if (!isNaN(value)) {
+      setObjects(objects.map(obj =>
+        obj.id === selectedObj.id
+          ? { ...obj, rotation: Math.round(selectedObj.rotation) }
+          : obj
+      ))
+    }
+  }}
+  />
+</div>
+//
+
   </div>
 )}
     </div>
