@@ -25,19 +25,58 @@ function App() {
     const parser = new DOMParser()
     const doc = parser.parseFromString(text, "image/svg+xml")
 
-    const rects = doc.querySelectorAll("rect")
+   const rects = Array.from(doc.querySelectorAll("rect")).filter(r => {
+  const w = Number(r.getAttribute("width") || 0)
+  const h = Number(r.getAttribute("height") || 0)
 
-   const newObjs: Obj[] = Array.from(rects).map((r, i) => ({
-  id: Date.now() + i,
-  type: "panel" as const,
-  x: Number(r.getAttribute("x") || 0),
-  y: Number(r.getAttribute("y") || 0),
-  width: Number(r.getAttribute("width") || 50),
-  height: Number(r.getAttribute("height") || 50),
-  rotation: 0,
-  zIndex: i,
-  name: `import${i + 1}`
-}))
+  // ステージサイズは除外
+  if (w > 1000 && h > 1000) return false
+
+  return true
+})
+
+   const newObjs = rects.map((r, i) => {
+  const w = Number(r.getAttribute("width") || 50)
+  const h = Number(r.getAttribute("height") || 50)
+
+  let name = ""
+  let type: "panel" | "platform" = "panel"
+
+  if (w === 182 && h === 182) {
+    name = `ロクロク${i + 1}`
+    type = "platform"
+  } else if (w === 91 && h === 182) {
+    name = `サブロク${i + 1}`
+    type = "platform"
+  } else if (w === 91 && h === 91) {
+    name = `サンサン${i + 1}`
+    type = "platform"
+  } else {
+    name = `パネル${i + 1}`
+    type = "panel"
+  }
+
+  // ⭐ 回転取得
+  const transform = r.getAttribute("transform")
+  let rotation = 0
+
+  if (transform?.includes("rotate")) {
+    const match = transform.match(/rotate\(([-\d.]+)/)
+    if (match) rotation = Number(match[1])
+  }
+
+  return {
+    id: Date.now() + i,
+    type,
+    x: Number(r.getAttribute("x") || 0),
+    y: Number(r.getAttribute("y") || 0),
+    width: w,
+    height: h,
+    rotation,
+    zIndex: i,
+    name
+  }
+})
     setObjects(newObjs)
   }
   reader.readAsText(file)
@@ -53,6 +92,7 @@ function App() {
   const stageWidth = 2002
   const stageHeight = 1638
   const [rightOpen, setRightOpen] = useState(false)
+  const [showCustom, setShowCustom] = useState(false)
   const selectedObj = objects.find(o => o.id === selectedId)
   const [isExporting, setIsExporting] = useState(false)
   const [curtain, setCurtains] = useState({
@@ -96,7 +136,7 @@ useEffect(() => {
     setObjects(prev =>
       prev.map(obj =>
         obj.id === selectedId
-          ? { ...obj, rotation: obj.rotation + 2 }
+          ? { ...obj, rotation: (obj.rotation + 2) % 360 }
           : obj
       )
     )
@@ -520,7 +560,9 @@ useEffect(() => {
     >
       {/* 名前クリックで選択 */}
       <div
-  onClick={() => setSelectedId(obj.id)}
+  onClick={() =>
+  setSelectedId(obj.id === selectedId ? null : obj.id)
+}
   style={{
     cursor: "pointer",
     padding: "8px",
@@ -539,7 +581,17 @@ useEffect(() => {
     </div>
   ))}
 </div>
-<input type="file" accept=".svg" onChange={handleImport} />
+<input
+  type="file"
+  accept=".svg"
+  onChange={handleImport}
+  style={{
+    position: "fixed",
+    top: 10,
+    right: 10,
+    zIndex: 200
+  }}
+/>
 {!isExporting && (
   //^^^^^^^^^^保存・パーツ^^^^^^^^^^^^^^
   <div
@@ -674,20 +726,9 @@ useEffect(() => {
   <button onClick={() => setRightOpen(false)}>✕</button>
 </div>
 <div>
-  <input
-    type="number"
-    value={customSize.w}
-    onChange={(e) =>
-      setCustomSize({ ...customSize, w: Number(e.target.value) })
-    }
-  />
-  <input
-    type="number"
-    value={customSize.h}
-    onChange={(e) =>
-      setCustomSize({ ...customSize, h: Number(e.target.value) })
-    }
-  />
+ <button onClick={() => setShowCustom(true)}>
+  カスタム追加
+</button>
  <div>
   中割幕:
   <input
@@ -705,13 +746,10 @@ useEffect(() => {
 <div>
   紗幕:
   <input
-    type="range"
-    min="0"
-    max="1"
-    step="0.01"
-    value={curtain.gauze}
+    type="checkbox"
+    checked={curtain.gauze > 0}
     onChange={(e) =>
-      setCurtains({ ...curtain, gauze: Number(e.target.value) })
+      setCurtains({ ...curtain, gauze: e.target.checked ? 1 : 0 })
     }
   />
 </div>
@@ -719,37 +757,13 @@ useEffect(() => {
 <div>
   大黒幕:
   <input
-    type="range"
-    min="0"
-    max="1"
-    step="0.01"
-    value={curtain.back}
+    type="checkbox"
+    checked={curtain.back > 0}
     onChange={(e) =>
-      setCurtains({ ...curtain, back: Number(e.target.value) })
+      setCurtains({ ...curtain, back: e.target.checked ? 1 : 0 })
     }
   />
 </div>
-  <button
-    onClick={() => {
-      const newObj = {
-        id: Date.now(),
-        type: "panel" as const ,
-        x: 100,
-        y: 100,
-        width: customSize.w,
-        height: customSize.h,
-        rotation: 0,
-        zIndex: objects.length,
-        name: `カスタム${objects.length + 1}`
-      }
-
-      setObjects([...objects, newObj])
-      setSelectedId(newObj.id)
-      setRightOpen(false)
-    }}
-  >
-    カスタム追加
-  </button>
 </div>
 <button 
   style={{
@@ -955,7 +969,60 @@ setRightOpen(false)
     style={{ width: 60 }}
   />
 </div>
+{showCustom && (
+  <div style={{
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    background: "#fff",
+    padding: 20,
+    zIndex: 999,
+    border: "1px solid #ccc"
+  }}>
+    <h3>カスタムサイズ</h3>
 
+    <input
+      type="number"
+      value={customSize.w}
+      onChange={(e) =>
+        setCustomSize({ ...customSize, w: Number(e.target.value) })
+      }
+    />
+    <input
+      type="number"
+      value={customSize.h}
+      onChange={(e) =>
+        setCustomSize({ ...customSize, h: Number(e.target.value) })
+      }
+    />
+
+    <button
+      onClick={() => {
+        const newObj = {
+          id: Date.now(),
+          type: "panel" as const,
+          x: 100,
+          y: 100,
+          width: customSize.w,
+          height: customSize.h,
+          rotation: 0,
+          zIndex: objects.length,
+          name: `カスタム${objects.length + 1}`
+        }
+
+        setObjects([...objects, newObj])
+        setSelectedId(newObj.id)
+        setShowCustom(false)
+        setRightOpen(false)
+      }}
+    >
+      追加
+    </button>
+
+    <button onClick={() => setShowCustom(false)}>閉じる</button>
+  </div>
+)}
   </div>
 )}
     </div>
