@@ -15,6 +15,33 @@ type Obj = {
 
 function App() {
   const [objects, setObjects] = useState<Obj[]>([])
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = () => {
+    const text = reader.result as string
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(text, "image/svg+xml")
+
+    const rects = doc.querySelectorAll("rect")
+
+   const newObjs: Obj[] = Array.from(rects).map((r, i) => ({
+  id: Date.now() + i,
+  type: "panel" as const,
+  x: Number(r.getAttribute("x") || 0),
+  y: Number(r.getAttribute("y") || 0),
+  width: Number(r.getAttribute("width") || 50),
+  height: Number(r.getAttribute("height") || 50),
+  rotation: 0,
+  zIndex: i,
+  name: `import${i + 1}`
+}))
+    setObjects(newObjs)
+  }
+  reader.readAsText(file)
+}
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [draggingId, setDraggingId] = useState<number | null>(null)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
@@ -28,9 +55,14 @@ function App() {
   const [rightOpen, setRightOpen] = useState(false)
   const selectedObj = objects.find(o => o.id === selectedId)
   const [isExporting, setIsExporting] = useState(false)
-  const [curtain, setCurtain] = useState(0) // 0〜1
+  const [curtain, setCurtains] = useState({
+  front: 0.27,
+  gauze: 0.27,
+  back: 0.27
+}) // 0〜1
   const [isTouching, setIsTouching] = useState(false)
   const isMobile = window.innerWidth < 768
+  const [customSize, setCustomSize] = useState({ w: 100, h: 100 })
   const getNextNumber = (type: string) => {
   return objects.filter(o => o.name.startsWith(type)).length + 1
 }
@@ -72,6 +104,24 @@ useEffect(() => {
 
   return () => clearInterval(interval)
 }, [isRotatingButton, selectedId])
+// 停止
+useEffect(() => {
+  const stop = () => {
+    setMoveDir(null)
+    setIsRotatingButton(false)
+  }
+
+  window.addEventListener("pointerup", stop)
+  window.addEventListener("pointercancel", stop)
+  window.addEventListener("touchend", stop)
+  window.addEventListener("mouseup", stop)
+  return () => {
+    window.removeEventListener("pointerup", stop)
+    window.removeEventListener("pointercancel", stop)
+    window.removeEventListener("touchend", stop)
+    window.removeEventListener("mouseup", stop)
+  }
+}, [])
   return (
     <div
     style={{
@@ -125,7 +175,8 @@ useEffect(() => {
       setObjects(prev =>
         prev.map(obj =>
           obj.id === draggingId
-            ? { ...obj, x: mouseX - offset.x, y: mouseY - offset.y }
+            ? { ...obj, x: Math.max(0, Math.min(stageWidth - obj.width, mouseX - offset.x)),
+              y: Math.max(0, Math.min(stageHeight - obj.height, mouseY - offset.y)) }
             : obj
         )
       )
@@ -155,7 +206,7 @@ useEffect(() => {
 {/* 幕（左：なめらか波） */}
 <path
   d={(() => {
-    const offset = stageWidth * curtain / 2
+    const offset = stageWidth * curtain.front / 2
     const centerY = stageHeight / 2
     const amplitude = 20   // 波の高さ
     const wavelength = 100 // 波の長さ
@@ -177,7 +228,7 @@ useEffect(() => {
 {/* 幕（右：なめらか波） */}
 <path
   d={(() => {
-    const offset = stageWidth * curtain / 2
+    const offset = stageWidth * curtain.front / 2
     const centerY = stageHeight / 2
     const amplitude = 20
     const wavelength = 100
@@ -194,6 +245,28 @@ useEffect(() => {
   fill="none"
   stroke="black"
   strokeWidth="4"
+/>
+{/* 紗幕（点線・下から3.75間） */}
+<line
+  x1="0"
+  x2={stageWidth}
+  y1={stageHeight - 182 * 3.75}
+  y2={stageHeight - 182 * 3.75}
+  stroke="black"
+  strokeDasharray="10 10"
+  strokeWidth="3"
+  opacity={curtain.gauze}
+/>
+
+{/* 大黒幕（上から0.5間） */}
+<line
+  x1="0"
+  x2={stageWidth}
+  y1={182 * 0.5}
+  y2={182 * 0.5}
+  stroke="black"
+  strokeWidth="5"
+  opacity={curtain.back}
 />
 
 
@@ -308,6 +381,8 @@ useEffect(() => {
                         y: obj.y + 20,
                       }
                       setObjects([...objects, copy])
+                      setSelectedId(copy.id)
+                      setRightOpen(false) 
                     }}
                   />
                   {/* 前面へ */}
@@ -418,30 +493,6 @@ useEffect(() => {
   >↓</button>
   <div />
 </div>
- <div
- //~~~~~~幕スライダー~~~~~~~
- style={{
-    width: "100%",
-    background: "#fff",
-    padding: isMobile ? 8 : 10,
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    borderTop: "1px solid #ccc"
-  }}
->
-  <div>
-    幕:
-    <input
-      type="range"
-      min="0.27"
-      max="1"
-      step="0.01"
-      value={curtain}
-      onChange={(e) => setCurtain(Number(e.target.value))}
-    />
-  </div>
-</div>
 {/* ===== レイヤー一覧 ===== */}
 <div style={{
   position: "fixed",
@@ -488,6 +539,7 @@ useEffect(() => {
     </div>
   ))}
 </div>
+<input type="file" accept=".svg" onChange={handleImport} />
 {!isExporting && (
   //^^^^^^^^^^保存・パーツ^^^^^^^^^^^^^^
   <div
@@ -514,6 +566,7 @@ useEffect(() => {
 
     setTimeout(() => {
     const svg = document.getElementById("stage-svg") as unknown as SVGSVGElement
+    
     if (!svg) return
     svg.setAttribute("width", String(stageWidth))
     svg.setAttribute("height", String(stageHeight))
@@ -522,7 +575,9 @@ useEffect(() => {
 
     const blob = new Blob([svgString], { type: "image/svg+xml" })
     const url = URL.createObjectURL(blob)
-
+    svg.setAttribute("viewBox", `0 0 ${stageWidth} ${stageHeight}`)
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet")
+    svg.style.background = "white"
     const a = document.createElement("a")
     a.href = url
     a.download = "stage.svg"
@@ -618,24 +673,105 @@ useEffect(() => {
   <h3>パーツ</h3>
   <button onClick={() => setRightOpen(false)}>✕</button>
 </div>
+<div>
+  <input
+    type="number"
+    value={customSize.w}
+    onChange={(e) =>
+      setCustomSize({ ...customSize, w: Number(e.target.value) })
+    }
+  />
+  <input
+    type="number"
+    value={customSize.h}
+    onChange={(e) =>
+      setCustomSize({ ...customSize, h: Number(e.target.value) })
+    }
+  />
+ <div>
+  中割幕:
+  <input
+    type="range"
+    min="0.27"
+    max="1"
+    step="0.01"
+    value={curtain.front}
+    onChange={(e) =>
+      setCurtains({ ...curtain, front: Number(e.target.value) })
+    }
+  />
+</div>
 
+<div>
+  紗幕:
+  <input
+    type="range"
+    min="0"
+    max="1"
+    step="0.01"
+    value={curtain.gauze}
+    onChange={(e) =>
+      setCurtains({ ...curtain, gauze: Number(e.target.value) })
+    }
+  />
+</div>
+
+<div>
+  大黒幕:
+  <input
+    type="range"
+    min="0"
+    max="1"
+    step="0.01"
+    value={curtain.back}
+    onChange={(e) =>
+      setCurtains({ ...curtain, back: Number(e.target.value) })
+    }
+  />
+</div>
+  <button
+    onClick={() => {
+      const newObj = {
+        id: Date.now(),
+        type: "panel" as const ,
+        x: 100,
+        y: 100,
+        width: customSize.w,
+        height: customSize.h,
+        rotation: 0,
+        zIndex: objects.length,
+        name: `カスタム${objects.length + 1}`
+      }
+
+      setObjects([...objects, newObj])
+      setSelectedId(newObj.id)
+      setRightOpen(false)
+    }}
+  >
+    カスタム追加
+  </button>
+</div>
 <button 
   style={{
   fontSize: 18,
   padding: "12px 16px",
   }}
   onClick={() => {
-  setObjects([...objects, {
-    id: Date.now(),
-    type: "panel",
-    x: 1001,
-    y: 819,
-    width: 91,
-    height: 10,
-    rotation: 0,
-    zIndex: objects.length,
-    name: `パネル${getNextNumber("パネル")}`,
-  }])
+  const newObj = {
+  id: Date.now(),
+  type: "panel" as const,
+  x: 1001,
+  y: 819,
+  width: 91,
+  height: 10,
+  rotation: 0,
+  zIndex: objects.length,
+  name: `パネル${getNextNumber("パネル")}`,
+}
+
+setObjects([...objects, newObj])
+setSelectedId(newObj.id)
+setRightOpen(false)
 }}>
   パネル
 </button>
@@ -645,17 +781,21 @@ useEffect(() => {
   padding: "12px 16px",
   }}
   onClick={() => {
-  setObjects([...objects, {
-    id: Date.now(),
-    type: "platform",
-    x: 1001,
-    y: 819,
-    width: 91,
-    height: 182,
-    rotation: 0,
-    zIndex: objects.length,
-    name: `サブロク${getNextNumber("サブロク")}`,
-  }])
+  const newObj = {
+  id: Date.now(),
+  type: "platform" as const,
+  x: 1001,
+  y: 819,
+  width: 91,
+  height: 182,
+  rotation: 0,
+  zIndex: objects.length,
+  name: `サブロク${getNextNumber("サブロク")}`,
+}
+
+setObjects([...objects, newObj])
+setSelectedId(newObj.id)
+setRightOpen(false)
 }}>
   サブロク
 </button>
@@ -666,17 +806,21 @@ useEffect(() => {
   padding: "12px 16px",
   }}
   onClick={() => {
-  setObjects([...objects, {
-    id: Date.now(),
-    type: "platform",
-    x: 1001,
-    y: 819,
-    width: 91,
-    height: 91,
-    rotation: 0,
-    zIndex: objects.length,
-    name: `サンサン${getNextNumber("サンサン")}`,
-  }])
+  const newObj = {
+  id: Date.now(),
+  type: "platform" as const,
+  x: 1001,
+  y: 819,
+  width: 91,
+  height: 91,
+  rotation: 0,
+  zIndex: objects.length,
+  name: `サンサン${getNextNumber("サンサン")}`,
+}
+
+setObjects([...objects, newObj])
+setSelectedId(newObj.id)
+setRightOpen(false)
 }}>
   サンサン
 </button>
@@ -687,17 +831,21 @@ useEffect(() => {
   padding: "12px 16px",
   }}
   onClick={() => {
-  setObjects([...objects, {
-    id: Date.now(),
-    type: "platform",
-    x: 1001,
-    y: 819,
-    width: 182,
-    height: 182,
-    rotation: 0,
-    zIndex: objects.length,
-    name: `ロクロク${getNextNumber("ロクロク")}`,
-  }])
+  const newObj = {
+  id: Date.now(),
+  type: "platform" as const,
+  x: 1001,
+  y: 819,
+  width: 182,
+  height: 182,
+  rotation: 0,
+  zIndex: objects.length,
+  name: `ロクロク${getNextNumber("ロクロク")}`,
+}
+
+setObjects([...objects, newObj])
+setSelectedId(newObj.id)
+setRightOpen(false)
 }}>
   ロクロク
 </button>
@@ -796,7 +944,8 @@ useEffect(() => {
     max="360"
     value={Math.round(selectedObj.rotation)}
     onChange={(e) => {
-      const value = Number(e.target.value) % 360
+      const raw = Number(e.target.value)
+      const value = ((raw % 360) + 360) % 360
       setObjects(objects.map(obj =>
         obj.id === selectedObj.id
           ? { ...obj, rotation: value }
