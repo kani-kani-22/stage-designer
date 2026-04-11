@@ -458,7 +458,7 @@ useEffect(() => {
   y2={stageHeight - 182 * 3.75}
   stroke="black"
   strokeDasharray="10 10"
-  strokeWidth="3"
+  strokeWidth="5"
   opacity={curtain.gauze ? 1 : 0}
 />
 
@@ -503,7 +503,7 @@ useEffect(() => {
           strokeWidth="4"
         />
         {/* 逆T字マーク */}
-<g stroke="black" strokeWidth="3">
+<g stroke="black" strokeWidth="5">
   {/* 横棒 */}
   <line
     x1={stageWidth / 2 - 40}
@@ -512,12 +512,12 @@ useEffect(() => {
     y2={stageHeight - 140}
   />
 
-  {/* 縦棒（下に伸びる） */}
+  {/* 縦棒（上に伸びる） */}
   <line
     x1={stageWidth / 2}
     x2={stageWidth / 2}
     y1={stageHeight - 140}
-    y2={stageHeight - 80}
+    y2={stageHeight - 200}
   />
 </g>
         {/* オブジェクト */}
