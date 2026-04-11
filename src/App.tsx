@@ -139,7 +139,7 @@ if (r.getAttribute("stroke") === "none") return false
 }) // 0〜1
   const [isTouching, setIsTouching] = useState(false)
   const isMobile = window.innerWidth < 768
- const [customSize, setCustomSize] = useState({ w: "100", h: "100" })
+ const [customSize, setCustomSize] = useState({ w: "182", h: "182" })
   const getNextNumber = (type: string) => {
   return objects.filter(o => o.name.startsWith(type)).length + 1
 }
