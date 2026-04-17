@@ -36,6 +36,7 @@ function App() {
   const [editX, setEditX] = useState("")
   const [editY, setEditY] = useState("")
   const [editRot, setEditRot] = useState("")
+  const [panelView, setPanelView] = useState<"home" | "platform" | "other">("home")
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0]
   if (!file) return
@@ -481,7 +482,7 @@ useEffect(() => {
         </defs>
 
         <rect x="0" y="0" width={stageWidth} height={stageHeight} fill="url(#grid)" />
-        //センターライン
+        {/*センターライン*/}
         <line
          x1={stageWidth / 2}
           x2={stageWidth / 2}
@@ -670,18 +671,20 @@ useEffect(() => {
         })}
         
       </svg>
-      <input
-      type="file"
-      accept=".svg"
-      onChange={handleImport}
-      style={{
-     marginTop: 10,
-     marginBottom: 10,
-     alignSelf: "flex-start", 
-     marginLeft: 10  
-      }}
+{/*ファイル保存*/}
+<input
+type="file"
+ accept=".svg"
+ onChange={handleImport}
+ style={{
+   marginTop: 10,
+   marginBottom: 10,
+   alignSelf: "flex-start", 
+   marginLeft: 10  
+  }}
 />
-      </div>
+</div>
+{/*ジョイスティック */}
    <div style={{
   position: "fixed",
   bottom: "15vh",
@@ -693,7 +696,20 @@ useEffect(() => {
   zIndex: 90
 }}>
   <div />
-  
+  <button 
+  style={{ fontSize: isMobile ? 20 : 30, 
+  padding: isMobile ? "12px" : "25px", 
+  userSelect: "none", 
+  WebkitUserSelect: "none" 
+  }} 
+  onPointerDown={() => setIsRotatingButton(true)} 
+  onPointerUp={() => setIsRotatingButton(false)} 
+  onPointerLeave={() => setIsRotatingButton(false)} 
+  onPointerCancel={() => setIsRotatingButton(false)} 
+  > 
+  ⟳ 
+  </button>
+
   <button
   style={{
   fontSize: isMobile ? 20 : 30,
@@ -806,205 +822,200 @@ useEffect(() => {
         zIndex: 50,
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-  <h3>パーツ</h3>
-  <button onClick={() => setRightOpen(false)}>✕</button>
-</div>
-<div>
+     {/* ===== ヘッダー ===== */}
+  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+    {panelView !== "home" && (
+      <button onClick={() => setPanelView("home")}>←</button>
+    )}
+    <h3>パーツ</h3>
+    <button onClick={() => setRightOpen(false)}>✕</button>
+  </div>
  <div>
-  中割幕:
-  <input
-    type="range"
-    min="0.27"
-    max="1"
-    step="0.01"
-    value={curtain.front}
-    onChange={(e) =>
-      setCurtains({ ...curtain, front: Number(e.target.value) })
-    }
-  />
+
+{/* ================= ホーム ================= */}
+{panelView === "home" && (
+  <>
+    {/* 幕（←ちゃんと残してる） */}
+    <div>
+      <div>
+        中割幕:
+        <input
+          type="range"
+          min="0.27"
+          max="1"
+          step="0.01"
+          value={curtain.front}
+          onChange={(e) =>
+            setCurtains({ ...curtain, front: Number(e.target.value) })
+          }
+        />
+      </div>
+
+      <div>
+        紗幕:
+        <input
+          type="checkbox"
+          checked={curtain.gauze > 0}
+          onChange={(e) =>
+            setCurtains({ ...curtain, gauze: e.target.checked ? 1 : 0 })
+          }
+        />
+      </div>
+
+      <div>
+        大黒幕:
+        <input
+          type="checkbox"
+          checked={curtain.back > 0}
+          onChange={(e) =>
+            setCurtains({ ...curtain, back: e.target.checked ? 1 : 0 })
+          }
+        />
+      </div>
+    </div>
+
+    <button onClick={() => {
+      const newObj = {
+        id: Date.now(),
+        type: "panel" as const,
+        x: 1001,
+        y: 819,
+        width: 91,
+        height: 10,
+        rotation: 0,
+        zIndex: objects.length,
+        name: `パネル${getNextNumber("パネル")}`,
+      }
+      setObjects([...objects, newObj])
+      setSelectedId(newObj.id)
+      setRightOpen(false)
+    }}>
+      パネル
+    </button>
+
+    <button onClick={() => setPanelView("platform")}>
+      平台
+    </button>
+
+    <button onClick={() => setPanelView("other")}>
+      その他
+    </button>
+
+    {/* カスタム（←残ってる） */}
+    <button onClick={() => {
+      setShowCustom(true)
+      setRightOpen(false)
+    }}>
+      カスタム追加
+    </button>
+  </>
+)}
+
+{/* ================= 平台 ================= */}
+{panelView === "platform" && (
+  <>
+    <button onClick={() => setPanelView("home")}>← 戻る</button>
+
+    <button onClick={() => {
+      const newObj: Obj = {
+        id: Date.now(),
+        type: "platform",
+        x: 1001,
+        y: 819,
+        width: 91,
+        height: 182,
+        rotation: 0,
+        zIndex: objects.length,
+        name: `サブロク${getNextNumber("サブロク")}`,
+      }
+      setObjects([...objects, newObj])
+    }}>サブロク</button>
+
+    <button onClick={() => {
+      const newObj: Obj = {
+        id: Date.now(),
+        type: "platform",
+        x: 1001,
+        y: 819,
+        width: 91,
+        height: 91,
+        rotation: 0,
+        zIndex: objects.length,
+        name: `サンサン${getNextNumber("サンサン")}`,
+      }
+      setObjects([...objects, newObj])
+    }}>サンサン</button>
+
+    <button onClick={() => {
+      const newObj: Obj = {
+        id: Date.now(),
+        type: "platform",
+        x: 1001,
+        y: 819,
+        width: 182,
+        height: 182,
+        rotation: 0,
+        zIndex: objects.length,
+        name: `ロクロク${getNextNumber("ロクロク")}`,
+      }
+      setObjects([...objects, newObj])
+    }}>ロクロク</button>
+  </>
+)}
+
+{/* ================= その他 ================= */}
+{panelView === "other" && (
+  <>
+    <button onClick={() => setPanelView("home")}>← 戻る</button>
+
+    <button onClick={() => {
+      const newObj: Obj = {
+        id: Date.now(),
+        type: "platform",
+        x: 1001,
+        y: 819,
+        width: 182,
+        height: 182,
+        rotation: 0,
+        zIndex: objects.length,
+        name: `影段${getNextNumber("影段")}`
+      }
+      setObjects([...objects, newObj])
+    }}>影段</button>
+
+    <button onClick={() => {
+      const newObj: Obj = {
+        id: Date.now(),
+        type: "platform",
+        x: 1001,
+        y: 819,
+        width: 50,
+        height: 24,
+        rotation: 0,
+        zIndex: objects.length,
+        name: `スモーク${getNextNumber("スモーク")}`
+      }
+      setObjects([...objects, newObj])
+    }}>スモーク</button>
+
+    <button onClick={() => {
+      const newObj: Obj = {
+        id: Date.now(),
+        type: "platform",
+        x: 1001,
+        y: 819,
+        width: 34,
+        height: 40,
+        rotation: 0,
+        zIndex: objects.length,
+        name: `SS${getNextNumber("SS")}`
+      }
+      setObjects([...objects, newObj])
+    }}>SS</button>
+  </>
+)}
+
 </div>
-
-<div>
-  紗幕:
-  <input
-    type="checkbox"
-    checked={curtain.gauze > 0}
-    onChange={(e) =>
-      setCurtains({ ...curtain, gauze: e.target.checked ? 1 : 0 })
-    }
-  />
-</div>
-
-<div>
-  大黒幕:
-  <input
-    type="checkbox"
-    checked={curtain.back > 0}
-    onChange={(e) =>
-      setCurtains({ ...curtain, back: e.target.checked ? 1 : 0 })
-    }
-  />
-</div>
-</div>
-<button 
-  style={{
-  fontSize: 18,
-  padding: "12px 16px",
-  }}
-  onClick={() => {
-  const newObj: Obj = {
-  id: Date.now(),
-  type: "panel" as const,
-  x: 1001,
-  y: 819,
-  width: 91,
-  height: 10,
-  rotation: 0,
-  zIndex: objects.length,
-  name: `パネル${getNextNumber("パネル")}`,
-}
-
-setObjects([...objects, newObj])
-setSelectedId(newObj.id)
-setRightOpen(false)
-}}>
-  パネル
-</button>
-<button 
-  style={{
-  fontSize: 18,
-  padding: "12px 16px",
-  }}
-  onClick={() => {
-  const newObj: Obj = {
-  id: Date.now(),
-  type: "platform" as const,
-  x: 1001,
-  y: 819,
-  width: 91,
-  height: 182,
-  rotation: 0,
-  zIndex: objects.length,
-  name: `サブロク${getNextNumber("サブロク")}`,
-}
-
-setObjects([...objects, newObj])
-setSelectedId(newObj.id)
-setRightOpen(false)
-}}>
-  サブロク
-</button>
-
-<button 
-  style={{
-  fontSize: 18,
-  padding: "12px 16px",
-  }}
-  onClick={() => {
-  const newObj: Obj = {
-  id: Date.now(),
-  type: "platform" as const,
-  x: 1001,
-  y: 819,
-  width: 91,
-  height: 91,
-  rotation: 0,
-  zIndex: objects.length,
-  name: `サンサン${getNextNumber("サンサン")}`,
-}
-
-setObjects([...objects, newObj])
-setSelectedId(newObj.id)
-setRightOpen(false)
-}}>
-  サンサン
-</button>
-
-<button 
-  style={{
-  fontSize: 18,
-  padding: "12px 16px",
-  }}
-  onClick={() => {
-  const newObj: Obj = {
-  id: Date.now(),
-  type: "platform" as const,
-  x: 1001,
-  y: 819,
-  width: 182,
-  height: 182,
-  rotation: 0,
-  zIndex: objects.length,
-  name: `ロクロク${getNextNumber("ロクロク")}`,
-}
-
-setObjects([...objects, newObj])
-setSelectedId(newObj.id)
-setRightOpen(false)
-}}>
-  ロクロク
-</button>
-<button onClick={() => {
-  const newObj: Obj = {
-    id: Date.now(),
-    type: "platform",
-    x: 1001,
-    y: 819,
-    width: 182,
-    height: 182,
-    rotation: 0,
-    zIndex: objects.length,
-    name: `影段${getNextNumber("影段")}`
-  }
-  setObjects([...objects, newObj])
-  setSelectedId(newObj.id)
-  setRightOpen(false)
-}}>
-影段
-</button>
-<button onClick={() => {
-  const newObj: Obj = {
-    id: Date.now(),
-    type: "platform",
-    x: 1001,
-    y: 819,
-    width: 50,
-    height: 24,
-    rotation: 0,
-    zIndex: objects.length,
-    name: `スモーク${getNextNumber("スモーク")}`
-  }
-  setObjects([...objects, newObj])
-  setSelectedId(newObj.id)
-  setRightOpen(false)
-}}>
-スモーク
-</button>
-<button onClick={() => {
-  const newObj: Obj = {
-    id: Date.now(),
-    type: "platform",
-    x: 1001,
-    y: 819,
-    width: 34,
-    height: 40,
-    rotation: 0,
-    zIndex: objects.length,
-    name: `SS${getNextNumber("SS")}`
-  }
-  setObjects([...objects, newObj])
-  setSelectedId(newObj.id)
-  setRightOpen(false)
-}}>
-SS
-</button>
-<button onClick={() => {
-  setShowCustom(true)
-  setRightOpen(false)
-}}>
-  カスタム追加
-</button>
     </div> 
     )}
 {showCustom && (
