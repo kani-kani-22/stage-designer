@@ -92,11 +92,11 @@ if (r.getAttribute("stroke") === "none") return false
   } else if (w === 91 && h === 10) {
     counters.パネル++
     name = `パネル${counters.パネル}`
-    type = "panel"
+    type = "panel" as const
   } else {
     counters.カスタム++
     name = `カスタム${counters.カスタム}`
-    type = "panel"
+    type = "panel" as const
   }
 
   // 回転取得
@@ -227,7 +227,6 @@ useEffect(() => {
   background: "#fff",
   zIndex: 50
 }}>
-  {/* ←ここに「SVG保存」「PNG保存」「パーツ」ボタンを移動 */}
   {!isExporting && (
   //^^^^^^^^^^保存・パーツ^^^^^^^^^^^^^^
   <div
@@ -488,7 +487,7 @@ useEffect(() => {
           x2={stageWidth / 2}
           y1="0"
           y2={stageHeight}
-          stroke="#888"
+          stroke="#ccc"
           strokeDasharray="10 10"
           strokeWidth="2"
           />
@@ -548,7 +547,89 @@ useEffect(() => {
 }}
             >
               {/* 本体 */}
-             {obj.shape === "ellipse" ? (
+             {obj.name.startsWith("影段") ? (
+  <g>
+    {/* 外枠 */}
+    <rect
+      x={obj.x}
+      y={obj.y}
+      width={obj.width}
+      height={obj.height}
+      fill="white"
+      stroke="black"
+      strokeWidth="4"
+    />
+    {/* 横線4本 */}
+    {[1,2,3,4].map(i => (
+      <line
+        key={i}
+        x1={obj.x}
+        x2={obj.x + obj.width}
+        y1={obj.y + (obj.height / 5) * i}
+        y2={obj.y + (obj.height / 5) * i}
+        stroke="black"
+        strokeWidth="2"
+      />
+    ))}
+  </g>
+
+) : obj.name.startsWith("スモーク") ? (
+  <g>
+    <rect
+      x={obj.x}
+      y={obj.y}
+      width={obj.width}
+      height={obj.height}
+      fill="white"
+      stroke="black"
+      strokeWidth="4"
+    />
+    <text
+      x={obj.x + obj.width / 2}
+      y={obj.y + obj.height / 2}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      fontSize="20"
+    >
+      ㋜
+    </text>
+  </g>
+
+) : obj.name.startsWith("SS") ? (
+  <g>
+    {/* 長方形 */}
+    <rect
+      x={obj.x}
+      y={obj.y}
+      width={obj.width}
+      height={obj.height}
+      fill="white"
+      stroke="black"
+      strokeWidth="4"
+    />
+    {/* 半円 */}
+    <path
+      d={`
+        M ${obj.x} ${obj.y + 8}
+        A 17 17 0 0 1 ${obj.x} ${obj.y + obj.height - 8}
+      `}
+      fill="none"
+      stroke="black"
+      strokeWidth="4"
+    />
+    {/* SS文字 */}
+    <text
+      x={obj.x + obj.width / 2}
+      y={obj.y + obj.height / 2}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      fontSize="16"
+    >
+      SS
+    </text>
+  </g>
+
+) : obj.shape === "ellipse" ? (
   <ellipse
     cx={obj.x + obj.width / 2}
     cy={obj.y + obj.height / 2}
@@ -582,78 +663,6 @@ useEffect(() => {
                     stroke="red"
                     strokeWidth="4"
                   />
-
-                  {/* 回転ハンドル */}
-                  <circle
-                    cx={centerX}
-                    cy={obj.y - 20}
-                    r={12}
-                    fill="orange"
-                    onPointerDown={(e) => {
-                    e.stopPropagation()
-                    setRotatingId(obj.id)
-                  }}
-                  />
-
-                  {/* 削除 */}
-                  <circle
-                    cx={obj.x + obj.width + 20}
-                    cy={obj.y}
-                    r={12}
-                    fill="red"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setObjects(objects.filter((o) => o.id !== obj.id))
-                      setSelectedId(null)
-                    }}
-                  />
-
-                  {/* コピー */}
-                  <circle
-                    cx={obj.x + obj.width + 20}
-                    cy={obj.y + 30}
-                    r={12}
-                    fill="green"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      const copy = {
-                        ...obj,
-                        id: Date.now(),
-                        x: obj.x + 20,
-                        y: obj.y + 20,
-                      }
-                      setObjects([...objects, copy])
-                      setSelectedId(copy.id)
-                      setRightOpen(false) 
-                    }}
-                  />
-                  {/* 前面へ */}
-<circle
-  cx={obj.x + obj.width + 20}
-  cy={obj.y + 60}
-  r={12}
-  fill="blue"
-  onClick={(e) => {
-    e.stopPropagation()
-    setObjects(objects.map(o =>
-      o.id === obj.id ? { ...o, zIndex: o.zIndex + 1 } : o
-    ))
-  }}
-/>
-
-{/* 背面へ */}
-<circle
-  cx={obj.x + obj.width + 20}
-  cy={obj.y + 90}
-  r={12}
-  fill="gray"
-  onClick={(e) => {
-    e.stopPropagation()
-    setObjects(objects.map(o =>
-      o.id === obj.id ? { ...o, zIndex: o.zIndex - 1 } : o
-    ))
-  }}
-/>
                 </>
               )}
             </g>
@@ -667,7 +676,9 @@ useEffect(() => {
       onChange={handleImport}
       style={{
      marginTop: 10,
-     marginBottom: 10
+     marginBottom: 10,
+     alignSelf: "flex-start", 
+     marginLeft: 10  
       }}
 />
       </div>
@@ -676,12 +687,13 @@ useEffect(() => {
   bottom: "15vh",
   right: "2vw",
   display: "grid",
-  gridTemplateColumns: isMobile ? "50px 50px 50px" : "100px 100px 100px",
-  gridTemplateRows: isMobile ? "50px 50px 50px" : "100px 100px 100px",
+  gridTemplateColumns: isMobile ? "60px 60px 60px" : "100px 100px 100px",
+  gridTemplateRows: isMobile ? "60px 60px 60px 60px" : "100px 100px 100px",
   gap: 10,
   zIndex: 90
 }}>
   <div />
+  
   <button
   style={{
   fontSize: isMobile ? 20 : 30,
@@ -693,7 +705,6 @@ useEffect(() => {
     onPointerUp={() => setMoveDir(null)}
   >↑</button>
   <div />
-
   <button
   style={{
   fontSize: isMobile ? 20 : 30,
@@ -705,21 +716,7 @@ useEffect(() => {
     onPointerUp={() => setMoveDir(null)}
   >←</button>
 
-  <button
-  style={{
-  fontSize: isMobile ? 20 : 30,
-  padding: isMobile ? "12px" : "25px",
-    userSelect: "none",
-    WebkitUserSelect: "none"
-  }}
-  onPointerDown={() => setIsRotatingButton(true)}
-  onPointerUp={() => setIsRotatingButton(false)}
-  onPointerLeave={() => setIsRotatingButton(false)}
-  onPointerCancel={() => setIsRotatingButton(false)}
->
-  ⟳
-</button>
-
+  
   <button
   style={{
   fontSize: isMobile ? 20 : 30,
@@ -856,7 +853,7 @@ useEffect(() => {
   padding: "12px 16px",
   }}
   onClick={() => {
-  const newObj = {
+  const newObj: Obj = {
   id: Date.now(),
   type: "panel" as const,
   x: 1001,
@@ -880,7 +877,7 @@ setRightOpen(false)
   padding: "12px 16px",
   }}
   onClick={() => {
-  const newObj = {
+  const newObj: Obj = {
   id: Date.now(),
   type: "platform" as const,
   x: 1001,
@@ -905,7 +902,7 @@ setRightOpen(false)
   padding: "12px 16px",
   }}
   onClick={() => {
-  const newObj = {
+  const newObj: Obj = {
   id: Date.now(),
   type: "platform" as const,
   x: 1001,
@@ -930,7 +927,7 @@ setRightOpen(false)
   padding: "12px 16px",
   }}
   onClick={() => {
-  const newObj = {
+  const newObj: Obj = {
   id: Date.now(),
   type: "platform" as const,
   x: 1001,
@@ -947,6 +944,60 @@ setSelectedId(newObj.id)
 setRightOpen(false)
 }}>
   ロクロク
+</button>
+<button onClick={() => {
+  const newObj: Obj = {
+    id: Date.now(),
+    type: "platform",
+    x: 1001,
+    y: 819,
+    width: 182,
+    height: 182,
+    rotation: 0,
+    zIndex: objects.length,
+    name: `影段${getNextNumber("影段")}`
+  }
+  setObjects([...objects, newObj])
+  setSelectedId(newObj.id)
+  setRightOpen(false)
+}}>
+影段
+</button>
+<button onClick={() => {
+  const newObj: Obj = {
+    id: Date.now(),
+    type: "platform",
+    x: 1001,
+    y: 819,
+    width: 50,
+    height: 24,
+    rotation: 0,
+    zIndex: objects.length,
+    name: `スモーク${getNextNumber("スモーク")}`
+  }
+  setObjects([...objects, newObj])
+  setSelectedId(newObj.id)
+  setRightOpen(false)
+}}>
+スモーク
+</button>
+<button onClick={() => {
+  const newObj: Obj = {
+    id: Date.now(),
+    type: "platform",
+    x: 1001,
+    y: 819,
+    width: 34,
+    height: 40,
+    rotation: 0,
+    zIndex: objects.length,
+    name: `SS${getNextNumber("SS")}`
+  }
+  setObjects([...objects, newObj])
+  setSelectedId(newObj.id)
+  setRightOpen(false)
+}}>
+SS
 </button>
 <button onClick={() => {
   setShowCustom(true)
@@ -1151,7 +1202,7 @@ setRightOpen(false)
     if (!isNaN(value)) {
       setObjects(objects.map(obj =>
         obj.id === selectedObj.id
-          ? { ...obj, rotation: Math.round(selectedObj.rotation) }
+          ? { ...obj, rotation:value }
           : obj
       ))
     }
