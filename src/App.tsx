@@ -561,13 +561,13 @@ useEffect(() => {
       strokeWidth="4"
     />
     {/* 横線4本 */}
-    {[1,2,3,4].map(i => (
+    {[1,2].map(i => (
       <line
         key={i}
         x1={obj.x}
         x2={obj.x + obj.width}
-        y1={obj.y + (obj.height / 5) * i}
-        y2={obj.y + (obj.height / 5) * i}
+        y1={obj.y + (obj.height / 3) * i}
+        y2={obj.y + (obj.height / 3) * i}
         stroke="black"
         strokeWidth="2"
       />
@@ -828,14 +828,17 @@ type="file"
       <button onClick={() => setPanelView("home")}>←</button>
     )}
     <h3>パーツ</h3>
-    <button onClick={() => setRightOpen(false)}>✕</button>
+    <button onClick={() => 
+    {setRightOpen(false)
+      setPanelView("home")
+    }}>✕</button>
   </div>
  <div>
 
 {/* ================= ホーム ================= */}
 {panelView === "home" && (
   <>
-    {/* 幕（←ちゃんと残してる） */}
+    {/* 幕 */}
     <div>
       <div>
         中割幕:
@@ -901,7 +904,7 @@ type="file"
       その他
     </button>
 
-    {/* カスタム（←残ってる） */}
+    {/* カスタム */}
     <button onClick={() => {
       setShowCustom(true)
       setRightOpen(false)
