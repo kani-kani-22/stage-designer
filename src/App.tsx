@@ -592,7 +592,7 @@ useEffect(() => {
       dominantBaseline="middle"
       fontSize="20"
     >
-      ㋜
+      ス
     </text>
   </g>
 
@@ -611,8 +611,8 @@ useEffect(() => {
     {/* 半円 */}
     <path
       d={`
-        M ${obj.x} ${obj.y + 8}
-        A 17 17 0 0 1 ${obj.x} ${obj.y + obj.height - 8}
+        M ${obj.x - 17} ${obj.y}
+        A 17 17 0 0 1 ${obj.x - 17} ${obj.y + obj.height}
       `}
       fill="none"
       stroke="black"
@@ -687,11 +687,11 @@ type="file"
 {/*ジョイスティック */}
    <div style={{
   position: "fixed",
-  bottom: "15vh",
+  bottom: isMobile ? "14vh" : 130,
   right: "2vw",
   display: "grid",
-  gridTemplateColumns: isMobile ? "60px 60px 60px" : "100px 100px 100px",
-  gridTemplateRows: isMobile ? "60px 60px 60px 60px" : "100px 100px 100px",
+  gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "100px 100px 100px",
+  gridTemplateRows: isMobile ? "repeat(3, 1fr)" : "100px 100px 100px",
   gap: 10,
   zIndex: 90
 }}>
@@ -709,7 +709,27 @@ type="file"
   > 
   ⟳ 
   </button>
-
+<button
+  style={{
+  fontSize: isMobile ? 20 : 30,
+  padding: isMobile ? "12px" : "25px",
+    userSelect: "none",
+    WebkitUserSelect: "none"
+  }}
+    onPointerDown={() => setMoveDir({x:-1,y:0})}
+    onPointerUp={() => setMoveDir(null)}
+  >←</button>
+  <button
+  style={{
+  fontSize: isMobile ? 20 : 30,
+  padding: isMobile ? "12px" : "25px",
+    userSelect: "none",
+    WebkitUserSelect: "none"
+  }}
+    onPointerDown={() => setMoveDir({x:0,y:1})}
+    onPointerUp={() => setMoveDir(null)}
+  >↓</button>
+  <div />
   <button
   style={{
   fontSize: isMobile ? 20 : 30,
@@ -728,33 +748,9 @@ type="file"
     userSelect: "none",
     WebkitUserSelect: "none"
   }}
-    onPointerDown={() => setMoveDir({x:-1,y:0})}
-    onPointerUp={() => setMoveDir(null)}
-  >←</button>
-
-  
-  <button
-  style={{
-  fontSize: isMobile ? 20 : 30,
-  padding: isMobile ? "12px" : "25px",
-    userSelect: "none",
-    WebkitUserSelect: "none"
-  }}
     onPointerDown={() => setMoveDir({x:1,y:0})}
     onPointerUp={() => setMoveDir(null)}
   >→</button>
-
-  <div />
-  <button
-  style={{
-  fontSize: isMobile ? 20 : 30,
-  padding: isMobile ? "12px" : "25px",
-    userSelect: "none",
-    WebkitUserSelect: "none"
-  }}
-    onPointerDown={() => setMoveDir({x:0,y:1})}
-    onPointerUp={() => setMoveDir(null)}
-  >↓</button>
   <div />
 </div>
 {/* ===== レイヤー一覧 ===== */}
@@ -932,6 +928,8 @@ type="file"
         name: `サブロク${getNextNumber("サブロク")}`,
       }
       setObjects([...objects, newObj])
+      setSelectedId(newObj.id)
+      setRightOpen(false)
     }}>サブロク</button>
 
     <button onClick={() => {
@@ -947,6 +945,8 @@ type="file"
         name: `サンサン${getNextNumber("サンサン")}`,
       }
       setObjects([...objects, newObj])
+      setSelectedId(newObj.id)
+      setRightOpen(false)
     }}>サンサン</button>
 
     <button onClick={() => {
@@ -962,6 +962,8 @@ type="file"
         name: `ロクロク${getNextNumber("ロクロク")}`,
       }
       setObjects([...objects, newObj])
+      setSelectedId(newObj.id)
+      setRightOpen(false)
     }}>ロクロク</button>
   </>
 )}
@@ -978,12 +980,14 @@ type="file"
         x: 1001,
         y: 819,
         width: 182,
-        height: 182,
+        height: 91,
         rotation: 0,
         zIndex: objects.length,
         name: `影段${getNextNumber("影段")}`
       }
       setObjects([...objects, newObj])
+      setSelectedId(newObj.id)
+      setRightOpen(false)
     }}>影段</button>
 
     <button onClick={() => {
@@ -999,6 +1003,8 @@ type="file"
         name: `スモーク${getNextNumber("スモーク")}`
       }
       setObjects([...objects, newObj])
+      setSelectedId(newObj.id)
+      setRightOpen(false)
     }}>スモーク</button>
 
     <button onClick={() => {
@@ -1014,6 +1020,8 @@ type="file"
         name: `SS${getNextNumber("SS")}`
       }
       setObjects([...objects, newObj])
+      setSelectedId(newObj.id)
+      setRightOpen(false)
     }}>SS</button>
   </>
 )}
@@ -1176,6 +1184,11 @@ type="file"
         ))
       }
       }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.currentTarget.blur()
+        }
+      }}
 />
     </div>
 
@@ -1198,6 +1211,11 @@ type="file"
       ))
     }
   }}
+        onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.currentTarget.blur()
+        }
+      }}
 />
     </div>
     </div>
@@ -1221,6 +1239,11 @@ type="file"
       ))
     }
   }}
+        onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.currentTarget.blur()
+        }
+      }}
   />
 </div>
 
