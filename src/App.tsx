@@ -762,7 +762,7 @@ type="file"
 
 {/* ================= ホーム ================= */}
 {panelView === "home" && (
-  <>
+  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
     {/* 幕 */}
     <div>
       <div>
@@ -851,12 +851,12 @@ type="file"
     }}>
       カスタム追加
     </button>
-  </>
+  </div>
 )}
 
 {/* ================= 平台 ================= */}
 {panelView === "platform" && (
-  <>
+  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
     <button
     style={{
       fontSize: 18,
@@ -922,12 +922,12 @@ type="file"
       setSelectedId(newObj.id)
       setRightOpen(false)
     }}>ロクロク</button>
-  </>
+  </div>
 )}
 
 {/* ================= その他 ================= */}
 {panelView === "other" && (
-  <>
+  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
     <button 
     style={{
       fontSize: 18,
@@ -993,7 +993,7 @@ type="file"
       setSelectedId(newObj.id)
       setRightOpen(false)
     }}>SS</button>
-  </>
+  </div>
 )}
 
 </div>
@@ -1213,7 +1213,7 @@ type="file"
     <button onPointerDown={() => setRotateDir(-1)}
     onPointerUp={() => setRotateDir(0)}
     onPointerLeave={() => setRotateDir(0)}
-    onPointerCancel={() => setRotateDir(0)}>⟳</button>
+    onPointerCancel={() => setRotateDir(0)}>⟲</button>
     <button onPointerDown={() => setMoveDir({x:0,y:-1})}>↑</button>
     <button onPointerDown={() => setRotateDir(1)}
     onPointerUp={() => setRotateDir(0)}
