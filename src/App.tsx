@@ -66,6 +66,9 @@ if (r.getAttribute("stroke") === "none") return false
   サブロク: 0,
   サンサン: 0,
   ロクロク: 0,
+  スモーク: 0,
+  影段: 0,
+  SS: 0,
   カスタム: 0
 }
   const newObjs = rects.map((r, i) => {
@@ -91,6 +94,18 @@ if (r.getAttribute("stroke") === "none") return false
     counters.パネル++
     name = `パネル${counters.パネル}`
     type = "panel" as const
+  } else if (w === 34 && h === 40) {
+  counters.SS = (counters.SS || 0) + 1
+  name = `SS${counters.SS}`
+  type = "platform"
+  } else if (w === 50 && h === 24) {
+  counters.スモーク = (counters.スモーク || 0) + 1
+  name = `スモーク${counters.スモーク}`
+  type = "platform"
+  } else if (w === 182 && h === 91) {
+  counters.影段 = (counters.影段 || 0) + 1
+  name = `影段${counters.影段}`
+  type = "platform"
   } else {
     counters.カスタム++
     name = `カスタム${counters.カスタム}`
@@ -132,9 +147,33 @@ if (r.getAttribute("stroke") === "none") return false
   const [isExporting, setIsExporting] = useState(false)
   const [curtain, setCurtains] = useState({
   front: 0.27,
-  gauze: 0.27,
-  back: 0.27
+  gauze: 0,
+  back: 0
 }) // 0〜1
+  const drawSideCurtain = (y: number) => {
+  const offset = stageWidth * 0.27 / 2
+  const amplitude = 20
+  const wavelength = 100
+
+  let left = `M 0 ${y}`
+  for (let x = 0; x <= offset; x += 2) {
+    const yy = y + amplitude * Math.sin((2 * Math.PI * x) / wavelength)
+    left += ` L ${x} ${yy}`
+  }
+
+  let right = `M ${stageWidth} ${y}`
+  for (let x = 0; x <= offset; x += 2) {
+    const yy = y + amplitude * Math.sin((2 * Math.PI * x) / wavelength)
+    right += ` L ${stageWidth - x} ${yy}`
+  }
+
+  return (
+    <>
+      <path d={left} stroke="black" strokeWidth="3" fill="none" />
+      <path d={right} stroke="black" strokeWidth="3" fill="none" />
+    </>
+  )
+}
   const [isTouching, setIsTouching] = useState(false)
   const isMobile = window.innerWidth < 768
  const [customSize, setCustomSize] = useState({ w: "182", h: "182" })
@@ -171,7 +210,7 @@ useEffect(() => {
     setObjects(prev =>
       prev.map(obj =>
         obj.id === selectedId
-          ? { ...obj, rotation: (obj.rotation + rotateDir * 2) % 360 }
+          ? { ...obj, rotation: (obj.rotation + rotateDir * 2 + 360) % 360 }
           : obj
       )
     )
@@ -423,7 +462,7 @@ useEffect(() => {
   })()}
   fill="none"
   stroke="black"
-  strokeWidth="4"
+  strokeWidth="5"
 />
 
 {/* 幕（右：なめらか波） */}
@@ -445,8 +484,13 @@ useEffect(() => {
   })()}
   fill="none"
   stroke="black"
-  strokeWidth="4"
+  strokeWidth="5"
 />
+{/* 固定幕 */}
+{drawSideCurtain(182 * 1.8)}
+{drawSideCurtain(182 * 3.1)}
+{drawSideCurtain(stageHeight - 182 * 1.25)}
+{drawSideCurtain(stageHeight - 182 * 3.75)}
 {/* 紗幕（点線・下から3.75間） */}
 <line
   x1="0"
@@ -566,7 +610,7 @@ useEffect(() => {
         y1={obj.y + (obj.height / 3) * i}
         y2={obj.y + (obj.height / 3) * i}
         stroke="black"
-        strokeWidth="2"
+        strokeWidth="3"
       />
     ))}
   </g>
@@ -1189,7 +1233,7 @@ type="file"
     if (!isNaN(value)) {
       setObjects(objects.map(obj =>
         obj.id === selectedObj.id
-          ? { ...obj, rotation: value }
+          ? { ...obj, rotation:((value % 360) + 360) % 360}
           : obj
       ))
     }
