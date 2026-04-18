@@ -611,8 +611,8 @@ useEffect(() => {
     {/* 半円 */}
     <path
       d={`
-        M ${obj.x - 17} ${obj.y}
-        A 17 17 0 0 0 ${obj.x - 17} ${obj.y + obj.height}
+        M ${obj.x} ${obj.y}
+        A 17 17 0 0 0 ${obj.x} ${obj.y + obj.height}
       `}
       fill="white"
       stroke="black"
@@ -1037,212 +1037,86 @@ type="file"
 {!isExporting && selectedObj && (
   //下パネル
   <div
-    style={{
-      position: "fixed",
-      bottom: isMobile ? "14vh" : 130,
-      left: 0,
-      width: "100%",
-      background: "#ddd",
-      paddingRight: isMobile ? 120 : 160, 
-      padding: 10,
-      zIndex: 60,
-      display: "flex",
-       flexDirection: "column", 
-      gap: 6,
-      flexWrap: "wrap",
-      alignItems: "flex-start",
-      justifyContent: "flex-start"
-    }}
-  >
+  style={{
+    position: "fixed",
+    bottom: isMobile ? "14vh" : 130,
+    left: 0,
+    width: "100%",
+    background: "#ddd",
+    padding: 10,
+    zIndex: 60,
+
+    display: "flex",
+    flexDirection: "row",        // ← 横並び
+    alignItems: "center",
+    justifyContent: "space-between", // ← 左右に分ける
+  }}
+>
+
+  {/* ===== 左ブロック ===== */}
+  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+
+    {/* 上段 */}
     <div style={{ display: "flex", gap: 10 }}>
-    {/* 名前 */}
-    {!isMobile && <strong>{selectedObj.name}</strong>}
-    {/* 削除 */}
-    <button
-      style={{ fontSize: 18, padding: "10px 14px", userSelect: "none",
-    WebkitUserSelect: "none" }}
-      onClick={() => {
+      {!isMobile && <strong>{selectedObj.name}</strong>}
+
+      <button onClick={() => {
         setObjects(objects.filter(o => o.id !== selectedObj.id))
         setSelectedId(null)
-      }}
-    >
-      削除
-    </button>
+      }}>削除</button>
 
-
-    {/* 前面 */}
-    <button
-      style={{ fontSize: 18, padding: "10px 14px" }}
-      onClick={() => {
+      <button onClick={() => {
         setObjects(objects.map(o =>
           o.id === selectedObj.id ? { ...o, zIndex: o.zIndex + 1 } : o
         ))
-      }}
-    >
-      前
-    </button>
+      }}>前</button>
 
-    {/* 背面 */}
-    <button
-      style={{ fontSize: 18, padding: "10px 14px" }}
-      onClick={() => {
+      <button onClick={() => {
         setObjects(objects.map(o =>
           o.id === selectedObj.id ? { ...o, zIndex: o.zIndex - 1 } : o
         ))
-      }}
-    >
-      後
-    </button>
+      }}>後</button>
     </div>
 
+    {/* 中段 */}
     <div style={{ display: "flex", gap: 10 }}>
-    {/* 座標 */}
-    <div>
-      X:
-      <input
-      style={{ width: 60 }}
-      type="text"
-      value={editX}
-      onChange={(e) => {
-      setEditX(e.target.value)
-      }}
-      onBlur={() => {
-      const value = Number(editX)
-      if (!isNaN(value)) {
-      setObjects(objects.map(obj =>
-        obj.id === selectedObj.id
-          ? { ...obj, x: Math.max(0, Math.min(stageWidth - obj.width, value)) }
-          : obj
-        ))
-      }
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.currentTarget.blur()
-        }
-      }}
-/>
+      <div>
+        X:
+        <input value={editX} style={{ width: 60 }} />
+      </div>
+      <div>
+        Y:
+        <input value={editY} style={{ width: 60 }} />
+      </div>
     </div>
 
+    {/* 下段 */}
     <div>
-      Y:
-      <input
-      style={{ width: 60 }}
-  type="text"
-  value={editY}
-  onChange={(e) => {
-    setEditY(e.target.value)
-  }}
-  onBlur={() => {
-    const value = Number(editY)
-    if (!isNaN(value)) {
-      setObjects(objects.map(obj =>
-        obj.id === selectedObj.id
-          ? { ...obj, y: Math.max(0, Math.min(stageHeight - obj.height, value)) }
-          : obj
-      ))
-    }
-  }}
-        onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.currentTarget.blur()
-        }
-      }}
-/>
-    </div>
+      回転:
+      <input value={editRot} style={{ width: 60 }} />
     </div>
 
-    <div>
-  回転:
-  <input
-  style={{ width: 60 }}
-  type="text"
-  value={editRot}
-  onChange={(e) => {
-    setEditRot(e.target.value)
-  }}
-  onBlur={() => {
-    const value = Number(editRot)
-    if (!isNaN(value)) {
-      setObjects(objects.map(obj =>
-        obj.id === selectedObj.id
-          ? { ...obj, rotation:value }
-          : obj
-      ))
-    }
-  }}
-        onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.currentTarget.blur()
-        }
-      }}
-  />
-</div>
-{/*ジョイスティック */}
-   <div style={{
-  marginLeft: "auto",
-  display: "grid",
-  gridTemplateColumns: isMobile ? "60px 60px 60px" : "100px 100px 100px",
-  gridTemplateRows: isMobile ? "60px 60px 60px" : "100px 100px 100px",
-  gap: 6,
-  zIndex: 90
-}}>
-  <button 
-  style={{ fontSize: isMobile ? 20 : 30, 
-  padding: isMobile ? "12px" : "25px", 
-  userSelect: "none", 
-  WebkitUserSelect: "none" 
-  }} 
-  onPointerDown={() => setIsRotatingButton(true)} 
-  onPointerUp={() => setIsRotatingButton(false)} 
-  onPointerLeave={() => setIsRotatingButton(false)} 
-  onPointerCancel={() => setIsRotatingButton(false)} 
-  > 
-  ⟳ 
-  </button>
-  <button
-  style={{
-  fontSize: isMobile ? 20 : 30,
-  padding: isMobile ? "12px" : "25px",
-    userSelect: "none",
-    WebkitUserSelect: "none"
-  }}
-    onPointerDown={() => setMoveDir({x:0,y:-1})}
-    onPointerUp={() => setMoveDir(null)}
-  >↑</button>
-  <div />
-<button
-  style={{
-  fontSize: isMobile ? 20 : 30,
-  padding: isMobile ? "12px" : "25px",
-    userSelect: "none",
-    WebkitUserSelect: "none"
-  }}
-    onPointerDown={() => setMoveDir({x:-1,y:0})}
-    onPointerUp={() => setMoveDir(null)}
-  >←</button>
-  <button
-  style={{
-  fontSize: isMobile ? 20 : 30,
-  padding: isMobile ? "12px" : "25px",
-    userSelect: "none",
-    WebkitUserSelect: "none"
-  }}
-    onPointerDown={() => setMoveDir({x:0,y:1})}
-    onPointerUp={() => setMoveDir(null)}
-  >↓</button>
-  <button
-  style={{
-  fontSize: isMobile ? 20 : 30,
-  padding: isMobile ? "12px" : "25px",
-    userSelect: "none",
-    WebkitUserSelect: "none"
-  }}
-    onPointerDown={() => setMoveDir({x:1,y:0})}
-    onPointerUp={() => setMoveDir(null)}
-  >→</button>
-</div>
   </div>
+
+  {/* ===== 右：ジョイスティック ===== */}
+  <div style={{
+    display: "grid",
+    gridTemplateColumns: "60px 60px 60px",
+    gridTemplateRows: "60px 60px",
+    gap: 6
+  }}>
+
+    <button onPointerDown={() => setIsRotatingButton(true)}>⟳</button>
+    <button onPointerDown={() => setMoveDir({x:0,y:-1})}>↑</button>
+    <div />
+
+    <button onPointerDown={() => setMoveDir({x:-1,y:0})}>←</button>
+    <button onPointerDown={() => setMoveDir({x:0,y:1})}>↓</button>
+    <button onPointerDown={() => setMoveDir({x:1,y:0})}>→</button>
+
+  </div>
+
+</div>
 )}
     </div>
   )
