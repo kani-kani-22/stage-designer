@@ -94,7 +94,7 @@ if (r.getAttribute("stroke") === "none") return false
     counters.パネル++
     name = `パネル${counters.パネル}`
     type = "panel" as const
-  } else if (w === 34 && h === 40) {
+  } else if (w === 48 && h === 34) {
   counters.SS = (counters.SS || 0) + 1
   name = `SS${counters.SS}`
   type = "platform"
@@ -866,6 +866,7 @@ type="file"
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
       setRightOpen(false)
+      setPanelView("home")
     }}>
       パネル
     </button>
@@ -892,6 +893,7 @@ type="file"
     <button onClick={() => {
       setShowCustom(true)
       setRightOpen(false)
+      setPanelView("home")
     }}>
       カスタム追加
     </button>
@@ -921,6 +923,7 @@ type="file"
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
       setRightOpen(false)
+      setPanelView("home")
     }}>サブロク</button>
 
     <button 
@@ -943,6 +946,7 @@ type="file"
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
       setRightOpen(false)
+      setPanelView("home")
     }}>サンサン</button>
 
     <button 
@@ -965,6 +969,7 @@ type="file"
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
       setRightOpen(false)
+      setPanelView("home")
     }}>ロクロク</button>
   </div>
 )}
@@ -992,6 +997,7 @@ type="file"
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
       setRightOpen(false)
+      setPanelView("home")
     }}>影段</button>
 
     <button 
@@ -1014,6 +1020,7 @@ type="file"
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
       setRightOpen(false)
+      setPanelView("home")
     }}>スモーク</button>
 
     <button 
@@ -1036,6 +1043,7 @@ type="file"
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
       setRightOpen(false)
+      setPanelView("home")
     }}>SS</button>
   </div>
 )}
