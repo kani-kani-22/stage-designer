@@ -55,9 +55,6 @@ function App() {
 
   // ステージサイズ除外
   if (w === stageWidth && h === stageHeight) return false
-
-  // 明らかに大きすぎるものも除外
-  if (w > 500 && h > 500) return false
     // strokeがnoneなら除外（背景防止）
 if (r.getAttribute("stroke") === "none") return false
 // 左上固定のゴミ除外（←これ追加）
@@ -125,7 +122,7 @@ if (r.getAttribute("stroke") === "none") return false
   const [moveDir, setMoveDir] = useState<{x: number, y: number} | null>(null)
 
   const [rotatingId, setRotatingId] = useState<number | null>(null)
-  const [isRotatingButton, setIsRotatingButton] = useState(false)
+ const [rotateDir, setRotateDir] = useState<1 | -1 | 0>(0)
 
   const stageWidth = 2002
   const stageHeight = 1638
@@ -168,25 +165,25 @@ y: Math.max(0, Math.min(stageHeight - obj.height, obj.y + moveDir.y * 5))
 
 // 回転
 useEffect(() => {
-  if (!isRotatingButton || !selectedId) return
+  if (rotateDir === 0 || !selectedId) return
 
   const interval = setInterval(() => {
     setObjects(prev =>
       prev.map(obj =>
         obj.id === selectedId
-          ? { ...obj, rotation: (obj.rotation + 2) % 360 }
+          ? { ...obj, rotation: (obj.rotation + rotateDir * 2) % 360 }
           : obj
       )
     )
   }, 16)
 
   return () => clearInterval(interval)
-}, [isRotatingButton, selectedId])
+}, [rotateDir, selectedId])
 // 停止
 useEffect(() => {
   const stop = () => {
     setMoveDir(null)
-    setIsRotatingButton(false)
+    setRotateDir(0)
   }
 
   window.addEventListener("pointerup", stop)
@@ -624,7 +621,7 @@ useEffect(() => {
       y={obj.y + obj.height / 2}
       textAnchor="middle"
       dominantBaseline="middle"
-      fontSize="16"
+      fontSize="18"
     >
       SS
     </text>
@@ -805,7 +802,12 @@ type="file"
       </div>
     </div>
 
-    <button onClick={() => {
+    <button 
+    style={{
+      fontSize: 18,
+      padding: "12px 16px",
+    }}
+    onClick={() => {
       const newObj = {
         id: Date.now(),
         type: "panel" as const,
@@ -824,11 +826,21 @@ type="file"
       パネル
     </button>
 
-    <button onClick={() => setPanelView("platform")}>
+    <button 
+    style={{
+      fontSize: 18,
+      padding: "12px 16px",
+    }}
+    onClick={() => setPanelView("platform")}>
       平台
     </button>
 
-    <button onClick={() => setPanelView("other")}>
+    <button 
+    style={{
+      fontSize: 18,
+      padding: "12px 16px",
+    }}
+    onClick={() => setPanelView("other")}>
       その他
     </button>
 
@@ -845,9 +857,12 @@ type="file"
 {/* ================= 平台 ================= */}
 {panelView === "platform" && (
   <>
-    <button onClick={() => setPanelView("home")}>← 戻る</button>
-
-    <button onClick={() => {
+    <button
+    style={{
+      fontSize: 18,
+      padding: "12px 16px",
+    }} 
+    onClick={() => {
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
@@ -864,7 +879,12 @@ type="file"
       setRightOpen(false)
     }}>サブロク</button>
 
-    <button onClick={() => {
+    <button 
+    style={{
+      fontSize: 18,
+      padding: "12px 16px",
+    }}
+    onClick={() => {
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
@@ -881,7 +901,12 @@ type="file"
       setRightOpen(false)
     }}>サンサン</button>
 
-    <button onClick={() => {
+    <button 
+    style={{
+      fontSize: 18,
+      padding: "12px 16px",
+    }}
+    onClick={() => {
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
@@ -903,9 +928,12 @@ type="file"
 {/* ================= その他 ================= */}
 {panelView === "other" && (
   <>
-    <button onClick={() => setPanelView("home")}>← 戻る</button>
-
-    <button onClick={() => {
+    <button 
+    style={{
+      fontSize: 18,
+      padding: "12px 16px",
+    }}
+    onClick={() => {
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
@@ -922,7 +950,12 @@ type="file"
       setRightOpen(false)
     }}>影段</button>
 
-    <button onClick={() => {
+    <button 
+    style={{
+      fontSize: 18,
+      padding: "12px 16px",
+    }}
+    onClick={() => {
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
@@ -939,13 +972,18 @@ type="file"
       setRightOpen(false)
     }}>スモーク</button>
 
-    <button onClick={() => {
+    <button 
+    style={{
+      fontSize: 18,
+      padding: "12px 16px",
+    }}
+    onClick={() => {
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
         x: 1001,
         y: 819,
-        width: 40,
+        width: 48,
         height: 34,
         rotation: 0,
         zIndex: objects.length,
@@ -1060,18 +1098,24 @@ type="file"
     <div style={{ display: "flex", gap: 10 }}>
       {!isMobile && <strong>{selectedObj.name}</strong>}
 
-      <button onClick={() => {
+      <button 
+      style={{ fontSize: 18, padding: "10px" }}
+      onClick={() => {
         setObjects(objects.filter(o => o.id !== selectedObj.id))
         setSelectedId(null)
       }}>削除</button>
 
-      <button onClick={() => {
+      <button 
+      style={{ fontSize: 18, padding: "10px" }}
+      onClick={() => {
         setObjects(objects.map(o =>
           o.id === selectedObj.id ? { ...o, zIndex: o.zIndex + 1 } : o
         ))
       }}>前</button>
 
-      <button onClick={() => {
+      <button 
+      style={{ fontSize: 18, padding: "10px" }}
+      onClick={() => {
         setObjects(objects.map(o =>
           o.id === selectedObj.id ? { ...o, zIndex: o.zIndex - 1 } : o
         ))
@@ -1082,18 +1126,78 @@ type="file"
     <div style={{ display: "flex", gap: 10 }}>
       <div>
         X:
-        <input value={editX} style={{ width: 60 }} />
+        <input
+  style={{ width: 60 }}
+  type="number"
+  value={editX}
+  onChange={(e) => setEditX(e.target.value)}
+  onBlur={() => {
+    const value = Number(editX)
+    if (!isNaN(value)) {
+      setObjects(objects.map(obj =>
+        obj.id === selectedObj.id
+          ? {
+              ...obj,
+              x: Math.max(0, Math.min(stageWidth - obj.width, value))
+            }
+          : obj
+      ))
+    }
+  }}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") e.currentTarget.blur()
+  }}
+/>
       </div>
       <div>
         Y:
-        <input value={editY} style={{ width: 60 }} />
+        <input
+  style={{ width: 60 }}
+  type="number"
+  value={editY}
+  onChange={(e) => setEditY(e.target.value)}
+  onBlur={() => {
+    const value = Number(editY)
+    if (!isNaN(value)) {
+      setObjects(objects.map(obj =>
+        obj.id === selectedObj.id
+          ? {
+              ...obj,
+              y: Math.max(0, Math.min(stageHeight - obj.height, value))
+            }
+          : obj
+      ))
+    }
+  }}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") e.currentTarget.blur()
+  }}
+/>
       </div>
     </div>
 
     {/* 下段 */}
     <div>
       回転:
-      <input value={editRot} style={{ width: 60 }} />
+      <input
+  style={{ width: 60 }}
+  type="number"
+  value={editRot}
+  onChange={(e) => setEditRot(e.target.value)}
+  onBlur={() => {
+    const value = Number(editRot)
+    if (!isNaN(value)) {
+      setObjects(objects.map(obj =>
+        obj.id === selectedObj.id
+          ? { ...obj, rotation: value }
+          : obj
+      ))
+    }
+  }}
+  onKeyDown={(e) => {
+    if (e.key === "Enter") e.currentTarget.blur()
+  }}
+/>
     </div>
 
   </div>
@@ -1106,9 +1210,15 @@ type="file"
     gap: 6
   }}>
 
-    <button onPointerDown={() => setIsRotatingButton(true)}>⟳</button>
+    <button onPointerDown={() => setRotateDir(-1)}
+    onPointerUp={() => setRotateDir(0)}
+    onPointerLeave={() => setRotateDir(0)}
+    onPointerCancel={() => setRotateDir(0)}>⟳</button>
     <button onPointerDown={() => setMoveDir({x:0,y:-1})}>↑</button>
-    <div />
+    <button onPointerDown={() => setRotateDir(1)}
+    onPointerUp={() => setRotateDir(0)}
+    onPointerLeave={() => setRotateDir(0)}
+    onPointerCancel={() => setRotateDir(0)}>⟳</button>
 
     <button onPointerDown={() => setMoveDir({x:-1,y:0})}>←</button>
     <button onPointerDown={() => setMoveDir({x:0,y:1})}>↓</button>
