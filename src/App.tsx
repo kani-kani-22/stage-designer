@@ -490,7 +490,7 @@ useEffect(() => {
 {drawSideCurtain(182 * 1.8)}
 {drawSideCurtain(182 * 3.1)}
 {drawSideCurtain(stageHeight - 182 * 1.25)}
-{drawSideCurtain(stageHeight - 182 * 3.75)}
+{drawSideCurtain(stageHeight - 182 * 2.75)}
 {/* 紗幕（点線・下から3.75間） */}
 <line
   x1="0"
