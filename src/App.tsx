@@ -612,9 +612,9 @@ useEffect(() => {
     <path
       d={`
         M ${obj.x - 17} ${obj.y}
-        A 17 17 0 0 1 ${obj.x - 17} ${obj.y + obj.height}
+        A 17 17 0 0 0 ${obj.x - 17} ${obj.y + obj.height}
       `}
-      fill="none"
+      fill="white"
       stroke="black"
       strokeWidth="4"
     />
@@ -684,75 +684,7 @@ type="file"
   }}
 />
 </div>
-{/*ジョイスティック */}
-   <div style={{
-  position: "fixed",
-  bottom: isMobile ? "14vh" : 130,
-  right: "2vw",
-  display: "grid",
-  gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "100px 100px 100px",
-  gridTemplateRows: isMobile ? "repeat(3, 1fr)" : "100px 100px 100px",
-  gap: 10,
-  zIndex: 90
-}}>
-  <div />
-  <button 
-  style={{ fontSize: isMobile ? 20 : 30, 
-  padding: isMobile ? "12px" : "25px", 
-  userSelect: "none", 
-  WebkitUserSelect: "none" 
-  }} 
-  onPointerDown={() => setIsRotatingButton(true)} 
-  onPointerUp={() => setIsRotatingButton(false)} 
-  onPointerLeave={() => setIsRotatingButton(false)} 
-  onPointerCancel={() => setIsRotatingButton(false)} 
-  > 
-  ⟳ 
-  </button>
-<button
-  style={{
-  fontSize: isMobile ? 20 : 30,
-  padding: isMobile ? "12px" : "25px",
-    userSelect: "none",
-    WebkitUserSelect: "none"
-  }}
-    onPointerDown={() => setMoveDir({x:-1,y:0})}
-    onPointerUp={() => setMoveDir(null)}
-  >←</button>
-  <button
-  style={{
-  fontSize: isMobile ? 20 : 30,
-  padding: isMobile ? "12px" : "25px",
-    userSelect: "none",
-    WebkitUserSelect: "none"
-  }}
-    onPointerDown={() => setMoveDir({x:0,y:1})}
-    onPointerUp={() => setMoveDir(null)}
-  >↓</button>
-  <div />
-  <button
-  style={{
-  fontSize: isMobile ? 20 : 30,
-  padding: isMobile ? "12px" : "25px",
-    userSelect: "none",
-    WebkitUserSelect: "none"
-  }}
-    onPointerDown={() => setMoveDir({x:0,y:-1})}
-    onPointerUp={() => setMoveDir(null)}
-  >↑</button>
-  <div />
-  <button
-  style={{
-  fontSize: isMobile ? 20 : 30,
-  padding: isMobile ? "12px" : "25px",
-    userSelect: "none",
-    WebkitUserSelect: "none"
-  }}
-    onPointerDown={() => setMoveDir({x:1,y:0})}
-    onPointerUp={() => setMoveDir(null)}
-  >→</button>
-  <div />
-</div>
+
 {/* ===== レイヤー一覧 ===== */}
 <div style={{
   position: "fixed",
@@ -1013,8 +945,8 @@ type="file"
         type: "platform",
         x: 1001,
         y: 819,
-        width: 34,
-        height: 40,
+        width: 40,
+        height: 34,
         rotation: 0,
         zIndex: objects.length,
         name: `SS${getNextNumber("SS")}`
@@ -1246,7 +1178,70 @@ type="file"
       }}
   />
 </div>
-
+{/*ジョイスティック */}
+   <div style={{
+  marginLeft: "auto",
+  display: "grid",
+  gridTemplateColumns: isMobile ? "60px 60px 60px" : "100px 100px 100px",
+  gridTemplateRows: isMobile ? "60px 60px 60px" : "100px 100px 100px",
+  gap: 6,
+  zIndex: 90
+}}>
+  <button 
+  style={{ fontSize: isMobile ? 20 : 30, 
+  padding: isMobile ? "12px" : "25px", 
+  userSelect: "none", 
+  WebkitUserSelect: "none" 
+  }} 
+  onPointerDown={() => setIsRotatingButton(true)} 
+  onPointerUp={() => setIsRotatingButton(false)} 
+  onPointerLeave={() => setIsRotatingButton(false)} 
+  onPointerCancel={() => setIsRotatingButton(false)} 
+  > 
+  ⟳ 
+  </button>
+  <button
+  style={{
+  fontSize: isMobile ? 20 : 30,
+  padding: isMobile ? "12px" : "25px",
+    userSelect: "none",
+    WebkitUserSelect: "none"
+  }}
+    onPointerDown={() => setMoveDir({x:0,y:-1})}
+    onPointerUp={() => setMoveDir(null)}
+  >↑</button>
+  <div />
+<button
+  style={{
+  fontSize: isMobile ? 20 : 30,
+  padding: isMobile ? "12px" : "25px",
+    userSelect: "none",
+    WebkitUserSelect: "none"
+  }}
+    onPointerDown={() => setMoveDir({x:-1,y:0})}
+    onPointerUp={() => setMoveDir(null)}
+  >←</button>
+  <button
+  style={{
+  fontSize: isMobile ? 20 : 30,
+  padding: isMobile ? "12px" : "25px",
+    userSelect: "none",
+    WebkitUserSelect: "none"
+  }}
+    onPointerDown={() => setMoveDir({x:0,y:1})}
+    onPointerUp={() => setMoveDir(null)}
+  >↓</button>
+  <button
+  style={{
+  fontSize: isMobile ? 20 : 30,
+  padding: isMobile ? "12px" : "25px",
+    userSelect: "none",
+    WebkitUserSelect: "none"
+  }}
+    onPointerDown={() => setMoveDir({x:1,y:0})}
+    onPointerUp={() => setMoveDir(null)}
+  >→</button>
+</div>
   </div>
 )}
     </div>
