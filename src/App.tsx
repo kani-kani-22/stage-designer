@@ -47,7 +47,21 @@ function App() {
       [obj.x + obj.width / 2, obj.y + obj.height / 2] // 中心
     ]
     return points[mode]
-  }
+    }
+    if (obj.shape === "ellipse") {
+    const cx = obj.x + obj.width / 2
+    const cy = obj.y + obj.height / 2
+
+    const points = [
+    [cx - obj.width / 2, cy], // 左
+    [cx, cy - obj.height / 2], // 上
+    [cx + obj.width / 2, cy], // 右
+    [cx, cy + obj.height / 2], // 下
+    [cx, cy] // 中心
+    ]
+
+    return points[mode]
+    }
   const points = [
     [obj.x, obj.y], // 左上
     [obj.x + obj.width, obj.y], // 右上
@@ -189,7 +203,7 @@ if (r.getAttribute("stroke") === "none") return false
   transform: "translate(-50%, -50%)",
   background: "#fff",
   padding: 20,
-  zIndex: 1000,
+  zIndex: 2000,
   border: "1px solid #ccc",
   width: "80%",
   maxWidth: 280,
@@ -860,7 +874,7 @@ type="file"
     transform: "translate(-50%, -50%)",
     background: "#fff",
     padding: 20,
-    zIndex: 999,
+    zIndex: 2000,
     border: "1px solid #ccc",
     width: "80%",
     maxWidth: 280,
@@ -907,11 +921,13 @@ type="file"
     </div>
 
     {/* ページ数 */}
-    <div style={{ marginTop: 8 }}>
+    <div style={{ marginBottom: 8 }}>
       {helpPage + 1} / {helpPages.length}
     </div>
 
-    <button onClick={() => setHelpOpen(false)}>閉じる</button>
+    <button
+    style={{paddingBottom: "10px" }} 
+    onClick={() => setHelpOpen(false)}>閉じる</button>
   </div>
 )}
 
@@ -927,7 +943,11 @@ type="file"
 ・間モードを追加
 ・回転中心を追加`}
 </div>
-    <button onClick={() => setUpdateOpen(false)}>閉じる</button>
+    <button
+    style={
+      {paddingBottom: "10px" }
+    } 
+    onClick={() => setUpdateOpen(false)}>閉じる</button>
   </div>
 )}
 
@@ -1393,7 +1413,8 @@ type="file"
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
+    gap: 20, 
   }}
 >
 
@@ -1422,25 +1443,9 @@ type="file"
         height: 36
       }}
       onClick={() => {
-  const nextMode = (pivotMode + 1) % 4
-
-  setObjects(prev =>
-    prev.map(obj => {
-      if (obj.id !== selectedId) return obj
-
-      const [oldPx, oldPy] = getPivot(obj, pivotMode)
-      const [newPx, newPy] = getPivot(obj, nextMode)
-
-      return {
-        ...obj,
-        x: obj.x + (oldPx - newPx),
-        y: obj.y + (oldPy - newPy)
-      }
-    })
-  )
-
-  setPivotMode(nextMode)
-}}>
+        const nextMode = (pivotMode + 1) % 4
+        setPivotMode(nextMode)
+      }}>
       角
       </button>
 
@@ -1452,24 +1457,8 @@ type="file"
       }}
       onClick={() => {
   const nextMode = 4
-
-  setObjects(prev =>
-    prev.map(obj => {
-      if (obj.id !== selectedId) return obj
-
-      const [oldPx, oldPy] = getPivot(obj, pivotMode)
-      const [newPx, newPy] = getPivot(obj, nextMode)
-
-      return {
-        ...obj,
-        x: obj.x + (oldPx - newPx),
-        y: obj.y + (oldPy - newPy)
-      }
-    })
-  )
-
-  setPivotMode(nextMode)
-}}>
+    setPivotMode(nextMode)
+  }}>
       中心
       </button>
     </div>
