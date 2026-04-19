@@ -192,7 +192,8 @@ if (r.getAttribute("stroke") === "none") return false
   zIndex: 1000,
   border: "1px solid #ccc",
   width: "80%",
-  maxWidth: 300,
+  maxWidth: 280,
+  aspectRatio: "3 / 4",
   borderRadius: 10
 }
   const [curtain, setCurtains] = useState({
@@ -330,7 +331,7 @@ useEffect(() => {
   setEditX(String(getDisplayX(selectedObj)))
   setEditY(String(getDisplayY(selectedObj)))
   setEditRot(String(Math.round(selectedObj.rotation)))
-}, [selectedObj, useKen])
+}, [selectedObj, useKen, pivotMode])
   return (
     <div
     style={{
@@ -351,7 +352,7 @@ useEffect(() => {
     }}
     >
      <button 
-     style={{ borderRadius: "50%", width: 30, height: 30 }}
+     style={{ paddingTop: 10,borderRadius: "50%", width: 30, height: 30 }}
      onClick={() => {
       setHelpOpen(true)
       setUpdateOpen(false)
@@ -364,7 +365,7 @@ useEffect(() => {
      <button onClick={() => {
       setUpdateOpen(true)
       setHelpOpen(false)
-     }}>更新</button>
+     }}>ver</button>
     </div>
 <div style={{
   minHeight: 50,
@@ -801,11 +802,9 @@ useEffect(() => {
     strokeWidth="4"
   />
 )}
-{selectedObj && (() => {
-  const [px, py] = getPivot(selectedObj)
-  return (
-    <circle cx={px} cy={py} r="10" fill="blue" />
-  )
+{selectedId === obj.id && (() => {
+  const [px, py] = getPivot(obj)
+  return <circle cx={px} cy={py} r="10" fill="blue" />
 })()}
               {/* 選択UI */}
               {selectedId === obj.id && !isExporting && (
@@ -862,7 +861,9 @@ type="file"
     padding: 20,
     zIndex: 999,
     border: "1px solid #ccc",
-    width: 320,
+    width: "80%",
+    maxWidth: 280,
+    aspectRatio: "3 / 4",
     textAlign: "center"
   }}>
     <div style={{
@@ -882,9 +883,13 @@ type="file"
 
   {/* 画像 */}
   <img
-    src={helpPages[helpPage].img}
-    style={{ width: "70%" }}
-  />
+  src={helpPages[helpPage].img}
+  style={{
+    width: "100%",
+    maxHeight: "50vh",
+    objectFit: "contain"
+  }}
+/>
 
   {/* 右ボタン */}
   <button
@@ -908,6 +913,7 @@ type="file"
     <button onClick={() => setHelpOpen(false)}>閉じる</button>
   </div>
 )}
+
 {/*======更新ポップアップ =======*/}
 {updateOpen && (
   <div style={popupStyle}>
@@ -922,6 +928,22 @@ type="file"
 </div>
     <button onClick={() => setUpdateOpen(false)}>閉じる</button>
   </div>
+)}
+
+{(helpOpen || updateOpen || showCustom) && (
+  <div
+    onClick={() => {
+      setHelpOpen(false)
+      setUpdateOpen(false)
+      setShowCustom(false)
+    }}
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0)",
+      zIndex: 1999
+    }}
+  />
 )}
 
 {/* ===== レイヤー一覧 ===== */}
@@ -969,7 +991,9 @@ type="file"
 {selectedId === obj.id && (
   <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
     
-    <button onClick={() => {
+    <button 
+    style={{ width: 30, height: 30 }}
+    onClick={() => {
       setObjects(prev => {
         const i = prev.findIndex(o => o.id === obj.id)
         if (i <= 0) return prev
@@ -981,7 +1005,9 @@ type="file"
       ←
     </button>
 
-    <button onClick={() => {
+    <button 
+    style={{ width: 30, height: 30 }}
+    onClick={() => {
       setObjects(prev => {
         const i = prev.findIndex(o => o.id === obj.id)
         if (i >= prev.length - 1) return prev
@@ -1283,7 +1309,7 @@ type="file"
     transform: "translate(-50%, -50%)",
     background: "#fff",
     padding: 20,
-    zIndex: 1000,
+    zIndex: 2000,
     border: "1px solid #ccc"
   }}>
     <h3>カスタムサイズ</h3>
@@ -1376,7 +1402,7 @@ type="file"
 
       <button 
       style={{
-        fontSize: 16,
+        fontSize: 15,
         padding: "6px 10px",
         height: 36
       }}
@@ -1399,7 +1425,7 @@ type="file"
 
       <button 
       style={{
-        fontSize: 16,
+        fontSize: 15,
         padding: "6px 10px",
         height: 36
       }}
