@@ -83,13 +83,16 @@ const changePivot = (obj: Obj, newMode: number): Obj => {
   const newObj = { ...obj, pivotMode: newMode }
   const [newPx, newPy] = getPivot(newObj)
 
-  // pivot差分
-  const dx = oldPx - newPx
-  const dy = oldPy - newPy
+  // pivot差分（ローカル）
+  const dx = newPx - oldPx
+  const dy = newPy - oldPy
 
-  // 回転を考慮して補正
-  const correctedDx = dx * Math.cos(rad) - dy * Math.sin(rad)
-  const correctedDy = dx * Math.sin(rad) + dy * Math.cos(rad)
+  // ★ 逆回転させる（ここが超重要）
+  const correctedDx =
+    dx * Math.cos(rad) + dy * Math.sin(rad)
+
+  const correctedDy =
+    -dx * Math.sin(rad) + dy * Math.cos(rad)
 
   return {
     ...newObj,
