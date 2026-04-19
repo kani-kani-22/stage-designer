@@ -37,7 +37,7 @@ function App() {
   const [editY, setEditY] = useState("")
   const [editRot, setEditRot] = useState("")
   const [pivotMode, setPivotMode] = useState(0) // 0〜4
-  const getPivot = (obj: Obj) => {
+  const getPivot = (obj: Obj, mode: number) => {
     if (obj.name.startsWith("SS")) {
     const points = [
       [obj.x - 17, obj.y + obj.height / 2], //半円の中心
@@ -46,7 +46,7 @@ function App() {
       [obj.x + obj.width, obj.y + obj.height], // 右下
       [obj.x + obj.width / 2, obj.y + obj.height / 2] // 中心
     ]
-    return points[pivotMode]
+    return points[mode]
   }
   const points = [
     [obj.x, obj.y], // 左上
@@ -55,7 +55,7 @@ function App() {
     [obj.x, obj.y + obj.height], // 左下
     [obj.x + obj.width / 2, obj.y + obj.height / 2] // 中心
   ]
-  return points[pivotMode]
+  return points[mode]
   }
   const [panelView, setPanelView] = useState<"home" | "platform" | "other">("home")
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -232,7 +232,7 @@ if (r.getAttribute("stroke") === "none") return false
   {/* 間モード関係*/}  
   const [useKen, setUseKen] = useState(false)
   const getDisplayX = (obj: Obj) => {
-  const [px] = getPivot(obj)
+  const [px] = getPivot(obj, pivotMode)
 
   if (!useKen) return Math.round(px)
 
@@ -240,14 +240,14 @@ if (r.getAttribute("stroke") === "none") return false
 }
 
 const getDisplayY = (obj: Obj) => {
-  const [, py] = getPivot(obj)
+  const [, py] = getPivot(obj, pivotMode)
 
   if (!useKen) return Math.round(py)
 
   return Math.round((stageHeight - py) / 182 * 10) / 10
 }
 const applyX = (value: number, obj: Obj) => {
-  const [px] = getPivot(obj)
+  const [px] = getPivot(obj, pivotMode)
 
   let targetPx = value
   if (useKen) targetPx = value * 182 + stageWidth / 2
@@ -255,7 +255,7 @@ const applyX = (value: number, obj: Obj) => {
   return obj.x + (targetPx - px)
 }
 const applyY = (value: number, obj: Obj) => {
-  const [, py] = getPivot(obj)
+  const [, py] = getPivot(obj, pivotMode)
 
   let targetPy = value
   if (useKen) targetPy = stageHeight - value * 182
@@ -340,7 +340,8 @@ useEffect(() => {
       touchAction: "manipulation",
       height: "100dvh",
       display: "flex",
-      flexDirection: "column"
+      flexDirection: "column",
+      paddingTop: "10px"
     }}
     > 
      <div
@@ -352,7 +353,7 @@ useEffect(() => {
     }}
     >
      <button 
-     style={{ paddingTop: 10,borderRadius: "50%", width: 30, height: 30 }}
+     style={{borderRadius: "50%", width: 30, height: 30 }}
      onClick={() => {
       setHelpOpen(true)
       setUpdateOpen(false)
@@ -541,7 +542,7 @@ useEffect(() => {
         prev.map(obj => {
           if (obj.id !== rotatingId) return obj
 
-          const [centerX, centerY] = getPivot(obj)
+          const [centerX, centerY] = getPivot(obj, pivotMode)
 
           const angle =
             (Math.atan2(mouseY - centerY, mouseX - centerX) * 180) / Math.PI
@@ -675,7 +676,7 @@ useEffect(() => {
 </g>
         {/* オブジェクト */}
         {[...objects].sort((a, b) => b.zIndex - a.zIndex).map((obj) => {
-          const [px, py] = getPivot(obj)
+          const [px, py] = getPivot(obj, pivotMode)
           return (
             <g
               key={obj.id}
@@ -802,8 +803,8 @@ useEffect(() => {
     strokeWidth="4"
   />
 )}
-{selectedId === obj.id && (() => {
-  const [px, py] = getPivot(obj)
+{selectedId === obj.id && !isExporting && (() => {
+  const [px, py] = getPivot(obj, pivotMode)
   return <circle cx={px} cy={py} r="10" fill="blue" />
 })()}
               {/* 選択UI */}
@@ -966,6 +967,7 @@ type="file"
       key={obj.id}
       style={{
         minWidth: isMobile ? 100 : 140,
+        minHeight: isMobile ? 90 : 110,
         padding: isMobile ? "6px" : "10px",
         border: obj.id === selectedId ? "3px solid red" : "1px solid #ccc",
         borderRadius: 5,
@@ -979,7 +981,8 @@ type="file"
 }
   style={{
     cursor: "pointer",
-    padding: "8px",
+    padding: "6px",
+    fontSize: 14,
     userSelect: "none",
     WebkitUserSelect: "none",
     borderRadius: 3,
@@ -989,7 +992,8 @@ type="file"
   {obj.name}
 </div>
 {selectedId === obj.id && (
-  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+  <div style={{ display: "flex", justifyContent: "space-between",
+     marginTop: 4 , flexShrink: 0 }}>
     
     <button 
     style={{ width: 30, height: 30 }}
@@ -1397,7 +1401,7 @@ type="file"
   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
 
     {/* 上段 */}
-    <div style={{ display: "flex", gap: 10 }}>
+    <div style={{ display: "flex", gap: 10 , minWidth: 200 }}>
       {!isMobile && <strong>{selectedObj.name}</strong>}
 
       <button 
@@ -1418,8 +1422,25 @@ type="file"
         height: 36
       }}
       onClick={() => {
-        setPivotMode((pivotMode + 1) % 4)
-      }}>
+  const nextMode = (pivotMode + 1) % 4
+
+  setObjects(prev =>
+    prev.map(obj => {
+      if (obj.id !== selectedId) return obj
+
+      const [oldPx, oldPy] = getPivot(obj, pivotMode)
+      const [newPx, newPy] = getPivot(obj, nextMode)
+
+      return {
+        ...obj,
+        x: obj.x + (oldPx - newPx),
+        y: obj.y + (oldPy - newPy)
+      }
+    })
+  )
+
+  setPivotMode(nextMode)
+}}>
       角
       </button>
 
@@ -1430,8 +1451,25 @@ type="file"
         height: 36
       }}
       onClick={() => {
-        setPivotMode(4)
-      }}>
+  const nextMode = 4
+
+  setObjects(prev =>
+    prev.map(obj => {
+      if (obj.id !== selectedId) return obj
+
+      const [oldPx, oldPy] = getPivot(obj, pivotMode)
+      const [newPx, newPy] = getPivot(obj, nextMode)
+
+      return {
+        ...obj,
+        x: obj.x + (oldPx - newPx),
+        y: obj.y + (oldPy - newPy)
+      }
+    })
+  )
+
+  setPivotMode(nextMode)
+}}>
       中心
       </button>
     </div>
