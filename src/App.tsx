@@ -36,6 +36,28 @@ function App() {
   const [editX, setEditX] = useState("")
   const [editY, setEditY] = useState("")
   const [editRot, setEditRot] = useState("")
+  const [pivotMode, setPivotMode] = useState(0) // 0〜4
+  const [showPivot, setShowPivot] = useState(false)
+  const getPivot = (obj: Obj) => {
+    if (obj.name.startsWith("SS")) {
+    const points = [
+      [obj.x - 17, obj.y + obj.height / 2], //半円の中心
+      [obj.x + obj.width, obj.y + obj.height / 2], //右辺の中心
+      [obj.x + obj.width, obj.y], // 右上
+      [obj.x + obj.width, obj.y + obj.height], // 右下
+      [obj.x + obj.width / 2, obj.y + obj.height / 2] // 中心
+    ]
+    return points[pivotMode]
+  }
+  const points = [
+    [obj.x, obj.y], // 左上
+    [obj.x + obj.width, obj.y], // 右上
+    [obj.x + obj.width, obj.y + obj.height], // 右下
+    [obj.x, obj.y + obj.height], // 左下
+    [obj.x + obj.width / 2, obj.y + obj.height / 2] // 中心
+  ]
+  return points[pivotMode]
+  }
   const [panelView, setPanelView] = useState<"home" | "platform" | "other">("home")
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0]
@@ -137,14 +159,44 @@ if (r.getAttribute("stroke") === "none") return false
   const [moveDir, setMoveDir] = useState<{x: number, y: number} | null>(null)
 
   const [rotatingId, setRotatingId] = useState<number | null>(null)
- const [rotateDir, setRotateDir] = useState<1 | -1 | 0>(0)
+  const [rotateDir, setRotateDir] = useState<1 | -1 | 0>(0)
+
+  const [dragLayerId, setDragLayerId] = useState<number | null>(null)
 
   const stageWidth = 2002
   const stageHeight = 1638
+{/*-----------------ヘルプページ----------------- */}
+  const [updateOpen, setUpdateOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [helpPage, setHelpPage] = useState(0)
+  const helpPages = [
+  {
+    img: "https://via.placeholder.com/300x180?text=Page1",
+    text: "パーツは右パネルから追加できます"
+  },
+  {
+    img: "https://via.placeholder.com/300x180?text=Page2",
+    text: "ドラッグで移動、下パネルで細かく調整できます"
+  }
+  ]
+
+
   const [rightOpen, setRightOpen] = useState(false)
   const [showCustom, setShowCustom] = useState(false)
   const selectedObj = objects.find(o => o.id === selectedId)
   const [isExporting, setIsExporting] = useState(false)
+  const popupStyle: React.CSSProperties = {
+  position: "fixed",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  background: "#fff",
+  padding: 20,
+  zIndex: 1000,
+  border: "1px solid #ccc",
+  width: "80%",
+  maxWidth: 400
+  }
   const [curtain, setCurtains] = useState({
   front: 0.27,
   gauze: 0,
@@ -176,6 +228,44 @@ if (r.getAttribute("stroke") === "none") return false
 }
   const [isTouching, setIsTouching] = useState(false)
   const isMobile = window.innerWidth < 768
+
+
+  {/* 間モード関係*/}  
+  const [useKen, setUseKen] = useState(false)
+  const getDisplayX = (obj: Obj) => {
+  const [px] = getPivot(obj)
+
+  if (!useKen) return Math.round(px)
+
+  return Math.round((px - stageWidth / 2) / 182 * 10) / 10
+}
+
+const getDisplayY = (obj: Obj) => {
+  const [, py] = getPivot(obj)
+
+  if (!useKen) return Math.round(py)
+
+  return Math.round((stageHeight - py) / 182 * 10) / 10
+}
+const applyX = (value: number, obj: Obj) => {
+  const [px] = getPivot(obj)
+
+  let targetPx = value
+  if (useKen) targetPx = value * 182 + stageWidth / 2
+
+  return obj.x + (targetPx - px)
+}
+const applyY = (value: number, obj: Obj) => {
+  const [, py] = getPivot(obj)
+
+  let targetPy = value
+  if (useKen) targetPy = stageHeight - value * 182
+
+  return obj.y + (targetPy - py)
+}
+
+
+
  const [customSize, setCustomSize] = useState({ w: "182", h: "182" })
   const getNextNumber = (type: string) => {
   return objects.filter(o => o.name.startsWith(type)).length + 1
@@ -236,12 +326,13 @@ useEffect(() => {
     window.removeEventListener("mouseup", stop)
   }
 }, [])
+
 useEffect(() => {
   if (!selectedObj) return
-  setEditX(String(Math.round(selectedObj.x)))
-  setEditY(String(Math.round(selectedObj.y)))
+  setEditX(String(getDisplayX(selectedObj)))
+  setEditY(String(getDisplayY(selectedObj)))
   setEditRot(String(Math.round(selectedObj.rotation)))
-}, [selectedObj])
+}, [selectedObj, useKen])
   return (
     <div
     style={{
@@ -253,7 +344,24 @@ useEffect(() => {
       flexDirection: "column"
     }}
     > 
-      <h1>舞台図エディタ</h1>
+     <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "0 10px"
+    }}
+    >
+     <button 
+     style={{ borderRadius: "50%", width: 30, height: 30 }}
+     onClick={() => setHelpOpen(true)}
+     >？
+     </button>
+
+     <h1 style={{ margin: 0 }}>舞台図エディタ</h1>
+
+     <button onClick={() => setUpdateOpen(true)}>更新</button>
+    </div>
 <div style={{
   minHeight: 50,
   flexShrink: 0,
@@ -428,8 +536,7 @@ useEffect(() => {
         prev.map(obj => {
           if (obj.id !== rotatingId) return obj
 
-          const centerX = obj.x + obj.width / 2
-          const centerY = obj.y + obj.height / 2
+          const [centerX, centerY] = getPivot(obj)
 
           const angle =
             (Math.atan2(mouseY - centerY, mouseX - centerX) * 180) / Math.PI
@@ -563,13 +670,11 @@ useEffect(() => {
 </g>
         {/* オブジェクト */}
         {[...objects].sort((a, b) => a.zIndex - b.zIndex).map((obj) => {
-          const centerX = obj.x + obj.width / 2
-          const centerY = obj.y + obj.height / 2
-
+          const [px, py] = getPivot(obj)
           return (
             <g
               key={obj.id}
-              transform={`rotate(${obj.rotation}, ${centerX}, ${centerY})`}
+              transform={`rotate(${obj.rotation}, ${px}, ${py})`}
               onPointerDown={(e) => {
   e.stopPropagation()
 
@@ -692,6 +797,12 @@ useEffect(() => {
     strokeWidth="4"
   />
 )}
+{showPivot && selectedObj && (() => {
+  const [px, py] = getPivot(selectedObj)
+  return (
+    <circle cx={px} cy={py} r="10" fill="blue" />
+  )
+})()}
               {/* 選択UI */}
               {selectedId === obj.id && !isExporting && (
                 <>
@@ -724,7 +835,81 @@ type="file"
    marginLeft: 10  
   }}
 />
+{/* 間モードトグル */}
+<div style={{ marginLeft: 10, marginBottom: 10 }}>
+  <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+    間モード
+    <input
+      type="checkbox"
+      checked={useKen}
+      onChange={(e) => setUseKen(e.target.checked)}
+    />
+  </label>
 </div>
+</div>
+{/*=========使い方ポップアップ========= */}
+{helpOpen && (
+  <div style={{
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    background: "#fff",
+    padding: 20,
+    zIndex: 999,
+    border: "1px solid #ccc",
+    width: 320,
+    textAlign: "center"
+  }}>
+    <img
+      src={helpPages[helpPage].img}
+      style={{ width: "100%", marginBottom: 10 }}
+    />
+
+    <div style={{ marginBottom: 10 }}>
+      {helpPages[helpPage].text}
+    </div>
+
+    {/* ページ操作 */}
+    <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <button
+        disabled={helpPage === 0}
+        onClick={() => setHelpPage(p => p - 1)}
+      >
+        ←
+      </button>
+
+      <button
+        disabled={helpPage === helpPages.length - 1}
+        onClick={() => setHelpPage(p => p + 1)}
+      >
+        →
+      </button>
+    </div>
+
+    {/* ページ数 */}
+    <div style={{ marginTop: 8 }}>
+      {helpPage + 1} / {helpPages.length}
+    </div>
+
+    <button onClick={() => setHelpOpen(false)}>閉じる</button>
+  </div>
+)}
+{/*======更新ポップアップ =======*/}
+{updateOpen && (
+  <div style={popupStyle}>
+    <div style={{ fontWeight: "bold", marginBottom: 10 }}>
+  更新内容
+</div>
+
+<div style={{ whiteSpace: "pre-line" }}>
+{`2026/04/19:
+・間モードを追加
+・回転中心を追加`}
+</div>
+    <button onClick={() => setUpdateOpen(false)}>閉じる</button>
+  </div>
+)}
 
 {/* ===== レイヤー一覧 ===== */}
 <div style={{
@@ -732,6 +917,7 @@ type="file"
   bottom: 0,
   left: 0,
   width: "100%",
+  boxSizing: "border-box",
   height: isMobile ? "12vh" : 120,
   background: "#fff",
   overflowX: "auto",
@@ -750,6 +936,24 @@ type="file"
         borderRadius: 5,
         background: "#fafafa"
       }}
+        onPointerDown={() => setDragLayerId(obj.id)}
+  onPointerUp={() => setDragLayerId(null)}
+  onPointerMove={(e) => {
+    if (dragLayerId === null) return
+
+    const rect = e.currentTarget.parentElement!.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const index = Math.floor(x / 110)
+
+    const newList = [...objects]
+    const from = newList.findIndex(o => o.id === dragLayerId)
+    const to = Math.max(0, Math.min(newList.length - 1, index))
+
+    const [moved] = newList.splice(from, 1)
+    newList.splice(to, 0, moved)
+
+    setObjects(newList.map((o, i) => ({ ...o, zIndex: i })))
+  }}
     >
       {/* 名前クリックで選択 */}
       <div
@@ -1125,13 +1329,14 @@ type="file"
   </div>
 )}
 {!isExporting && selectedObj && (
-  //下パネル
+  //=========================下パネル=======================================
   <div
   style={{
     position: "fixed",
     bottom: isMobile ? "14vh" : 130,
     left: 0,
     width: "100%",
+    boxSizing: "border-box",
     background: "#ddd",
     padding: 10,
     zIndex: 60,
@@ -1160,18 +1365,22 @@ type="file"
       <button 
       style={{ fontSize: 18, padding: "10px" }}
       onClick={() => {
-        setObjects(objects.map(o =>
-          o.id === selectedObj.id ? { ...o, zIndex: o.zIndex + 1 } : o
-        ))
-      }}>前</button>
+        setPivotMode((pivotMode + 1) % 5)
+        setShowPivot(true)
+        setTimeout(() => setShowPivot(false), 2000)
+      }}>
+      角移動
+      </button>
 
       <button 
       style={{ fontSize: 18, padding: "10px" }}
       onClick={() => {
-        setObjects(objects.map(o =>
-          o.id === selectedObj.id ? { ...o, zIndex: o.zIndex - 1 } : o
-        ))
-      }}>後</button>
+        setPivotMode(4)
+        setShowPivot(true)
+        setTimeout(() => setShowPivot(false), 2000)
+      }}>
+      中心
+      </button>
     </div>
 
     {/* 中段 */}
@@ -1190,7 +1399,10 @@ type="file"
         obj.id === selectedObj.id
           ? {
               ...obj,
-              x: Math.max(0, Math.min(stageWidth - obj.width, value))
+              x: Math.max(0, Math.min(
+              stageWidth - obj.width,
+              applyX(value, obj)
+            ))
             }
           : obj
       ))
@@ -1215,7 +1427,10 @@ type="file"
         obj.id === selectedObj.id
           ? {
               ...obj,
-              y: Math.max(0, Math.min(stageHeight - obj.height, value))
+              y: Math.max(0, Math.min(
+              stageHeight - obj.height,
+              applyY(value, obj)
+              ))
             }
           : obj
       ))
