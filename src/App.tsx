@@ -12,6 +12,7 @@ type Obj = {
   zIndex: number
   name: string
   shape?: "rect" | "ellipse"
+  pivotMode: number
 }
 const getRotation = (el: Element): number => {
   let current: Element | null = el
@@ -36,41 +37,67 @@ function App() {
   const [editX, setEditX] = useState("")
   const [editY, setEditY] = useState("")
   const [editRot, setEditRot] = useState("")
-  const [pivotMode, setPivotMode] = useState(0) // 0〜4
-  const getPivot = (obj: Obj, mode: number) => {
-    if (obj.name.startsWith("SS")) {
+ const getPivot = (obj: Obj) => {
+  const mode = obj.pivotMode
+
+  if (obj.name.startsWith("SS")) {
     const points = [
-      [obj.x - 17, obj.y + obj.height / 2], //半円の中心
-      [obj.x + obj.width, obj.y + obj.height / 2], //右辺の中心
-      [obj.x + obj.width, obj.y], // 右上
-      [obj.x + obj.width, obj.y + obj.height], // 右下
-      [obj.x + obj.width / 2, obj.y + obj.height / 2] // 中心
+      [obj.x - 17, obj.y + obj.height / 2],
+      [obj.x + obj.width, obj.y + obj.height / 2],
+      [obj.x + obj.width, obj.y],
+      [obj.x + obj.width, obj.y + obj.height],
+      [obj.x + obj.width / 2, obj.y + obj.height / 2]
     ]
     return points[mode]
-    }
-    if (obj.shape === "ellipse") {
+  }
+
+  if (obj.shape === "ellipse") {
     const cx = obj.x + obj.width / 2
     const cy = obj.y + obj.height / 2
 
     const points = [
-    [cx - obj.width / 2, cy], // 左
-    [cx, cy - obj.height / 2], // 上
-    [cx + obj.width / 2, cy], // 右
-    [cx, cy + obj.height / 2], // 下
-    [cx, cy] // 中心
+      [cx - obj.width / 2, cy],
+      [cx, cy - obj.height / 2],
+      [cx + obj.width / 2, cy],
+      [cx, cy + obj.height / 2],
+      [cx, cy]
     ]
-
     return points[mode]
-    }
-  const points = [
-    [obj.x, obj.y], // 左上
-    [obj.x + obj.width, obj.y], // 右上
-    [obj.x + obj.width, obj.y + obj.height], // 右下
-    [obj.x, obj.y + obj.height], // 左下
-    [obj.x + obj.width / 2, obj.y + obj.height / 2] // 中心
-  ]
-  return points[mode]
   }
+
+  const points = [
+    [obj.x, obj.y],
+    [obj.x + obj.width, obj.y],
+    [obj.x + obj.width, obj.y + obj.height],
+    [obj.x, obj.y + obj.height],
+    [obj.x + obj.width / 2, obj.y + obj.height / 2]
+  ]
+
+  return points[mode]
+}
+const changePivot = (obj: Obj, newMode: number): Obj => {
+  const rad = (obj.rotation * Math.PI) / 180
+
+  const [oldPx, oldPy] = getPivot(obj)
+
+  const newObj = { ...obj, pivotMode: newMode }
+  const [newPx, newPy] = getPivot(newObj)
+
+  // pivot差分
+  const dx = oldPx - newPx
+  const dy = oldPy - newPy
+
+  // 回転を考慮して補正
+  const correctedDx = dx * Math.cos(rad) - dy * Math.sin(rad)
+  const correctedDy = dx * Math.sin(rad) + dy * Math.cos(rad)
+
+  return {
+    ...newObj,
+    x: obj.x + correctedDx,
+    y: obj.y + correctedDy
+  }
+}
+
   const [panelView, setPanelView] = useState<"home" | "platform" | "other">("home")
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0]
@@ -159,7 +186,8 @@ if (r.getAttribute("stroke") === "none") return false
     height: h,
     rotation,
     zIndex: i,
-    name
+    name,
+    pivotMode: 4 ,
   }
 })
     setObjects(newObjs)
@@ -246,7 +274,7 @@ if (r.getAttribute("stroke") === "none") return false
   {/* 間モード関係*/}  
   const [useKen, setUseKen] = useState(false)
   const getDisplayX = (obj: Obj) => {
-  const [px] = getPivot(obj, pivotMode)
+  const [px] = getPivot(obj)
 
   if (!useKen) return Math.round(px)
 
@@ -254,14 +282,14 @@ if (r.getAttribute("stroke") === "none") return false
 }
 
 const getDisplayY = (obj: Obj) => {
-  const [, py] = getPivot(obj, pivotMode)
+  const [, py] = getPivot(obj)
 
   if (!useKen) return Math.round(py)
 
   return Math.round((stageHeight - py) / 182 * 10) / 10
 }
 const applyX = (value: number, obj: Obj) => {
-  const [px] = getPivot(obj, pivotMode)
+  const [px] = getPivot(obj)
 
   let targetPx = value
   if (useKen) targetPx = value * 182 + stageWidth / 2
@@ -269,7 +297,7 @@ const applyX = (value: number, obj: Obj) => {
   return obj.x + (targetPx - px)
 }
 const applyY = (value: number, obj: Obj) => {
-  const [, py] = getPivot(obj, pivotMode)
+  const [, py] = getPivot(obj)
 
   let targetPy = value
   if (useKen) targetPy = stageHeight - value * 182
@@ -345,7 +373,7 @@ useEffect(() => {
   setEditX(String(getDisplayX(selectedObj)))
   setEditY(String(getDisplayY(selectedObj)))
   setEditRot(String(Math.round(selectedObj.rotation)))
-}, [selectedObj, useKen, pivotMode])
+}, [selectedObj, useKen])
   return (
     <div
     style={{
@@ -556,7 +584,7 @@ useEffect(() => {
         prev.map(obj => {
           if (obj.id !== rotatingId) return obj
 
-          const [centerX, centerY] = getPivot(obj, pivotMode)
+          const [centerX, centerY] = getPivot(obj)
 
           const angle =
             (Math.atan2(mouseY - centerY, mouseX - centerX) * 180) / Math.PI
@@ -690,7 +718,7 @@ useEffect(() => {
 </g>
         {/* オブジェクト */}
         {[...objects].sort((a, b) => b.zIndex - a.zIndex).map((obj) => {
-          const [px, py] = getPivot(obj, pivotMode)
+          const [px, py] = getPivot(obj)
           return (
             <g
               key={obj.id}
@@ -818,7 +846,7 @@ useEffect(() => {
   />
 )}
 {selectedId === obj.id && !isExporting && (() => {
-  const [px, py] = getPivot(obj, pivotMode)
+  const [px, py] = getPivot(obj)
   return <circle cx={px} cy={py} r="10" fill="blue" />
 })()}
               {/* 選択UI */}
@@ -1136,6 +1164,7 @@ type="file"
         rotation: 0,
         zIndex: objects.length,
         name: `パネル${getNextNumber("パネル")}`,
+        pivotMode: 4 ,
       }
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
@@ -1193,6 +1222,7 @@ type="file"
         rotation: 0,
         zIndex: objects.length,
         name: `サブロク${getNextNumber("サブロク")}`,
+        pivotMode: 4 ,
       }
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
@@ -1216,6 +1246,7 @@ type="file"
         rotation: 0,
         zIndex: objects.length,
         name: `サンサン${getNextNumber("サンサン")}`,
+        pivotMode: 4 ,
       }
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
@@ -1239,6 +1270,7 @@ type="file"
         rotation: 0,
         zIndex: objects.length,
         name: `ロクロク${getNextNumber("ロクロク")}`,
+        pivotMode: 4 ,
       }
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
@@ -1266,7 +1298,8 @@ type="file"
         height: 91,
         rotation: 0,
         zIndex: objects.length,
-        name: `影段${getNextNumber("影段")}`
+        name: `影段${getNextNumber("影段")}`,
+        pivotMode: 4 ,
       }
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
@@ -1289,7 +1322,8 @@ type="file"
         height: 24,
         rotation: 0,
         zIndex: objects.length,
-        name: `スモーク${getNextNumber("スモーク")}`
+        name: `スモーク${getNextNumber("スモーク")}`,
+        pivotMode: 4 ,
       }
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
@@ -1312,7 +1346,8 @@ type="file"
         height: 34,
         rotation: 0,
         zIndex: objects.length,
-        name: `SS${getNextNumber("SS")}`
+        name: `SS${getNextNumber("SS")}`,
+        pivotMode: 4 ,
       }
       setObjects([...objects, newObj])
       setSelectedId(newObj.id)
@@ -1383,7 +1418,8 @@ type="file"
           rotation: 0,
           zIndex: objects.length,
           shape: customShape ,
-          name: `カスタム${getNextNumber("カスタム")}`
+          name: `カスタム${getNextNumber("カスタム")}`,
+          pivotMode: 4 ,
         }
 
         setObjects([...objects, newObj])
@@ -1443,8 +1479,13 @@ type="file"
         height: 36
       }}
       onClick={() => {
-        const nextMode = (pivotMode + 1) % 4
-        setPivotMode(nextMode)
+        setObjects(prev =>
+  prev.map(o =>
+    o.id === selectedObj.id
+      ? changePivot(o, (o.pivotMode + 1) % 5)
+      : o
+  )
+)
       }}>
       角
       </button>
@@ -1456,8 +1497,13 @@ type="file"
         height: 36
       }}
       onClick={() => {
-  const nextMode = 4
-    setPivotMode(nextMode)
+  setObjects(prev =>
+  prev.map(o =>
+    o.id === selectedObj.id
+      ? changePivot(o, 4)
+      : o
+  )
+)
   }}>
       中心
       </button>
