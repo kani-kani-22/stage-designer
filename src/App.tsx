@@ -225,7 +225,7 @@ if (r.getAttribute("stroke") === "none") return false
   },
   {
     img: "/partslayer.gif",
-    text: "動かすパーツを変えるときは、画面下の名前をタップしてください/n(パーツを直接タッチしても選択できますが、パネルは難しいです)/n名前の下の左右ボタンで表示順を変更できます"
+    text: "動かすパーツを変えるときは、画面下の名前をタップしてください\n(パーツを直接タッチしても選択できますが、パネルは難しいです)\n名前の下の左右ボタンで表示順を変更できます"
   },
   {
     img: "/curtain.gif",
@@ -237,7 +237,7 @@ if (r.getAttribute("stroke") === "none") return false
   },
   {
     img: "/importsvg.gif",
-    text: "SVG保存によって、保存したものを下のファイル選択ボタンから読み込んで、途中から再開することができます\n(SVG形式のファイルはスマホの画像アプリでは開けないことが多いので、ファイル名を変更するなどで区別してください)"
+    text: "SVG保存によって、保存したものを下のファイル選択ボタンから読み込んで、途中から再開することができます\n(SVG画像はスマホでは開けないことが多いので、ファイル名を変更して区別してください)"
   },
   {
     img: "/stagepng.png",
@@ -958,7 +958,7 @@ type="file"
   <img
   src={helpPages[helpPage].img}
   style={{
-    width: "100%",
+    maxWidth: helpPages[helpPage].img === "/stagepng.png" ? "70%" : "90%",
     maxHeight: "50vh",
     objectFit: "contain"
   }}
