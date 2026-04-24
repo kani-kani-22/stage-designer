@@ -378,7 +378,7 @@ useEffect(() => {
     style={{
       userSelect: "none",
       WebkitUserSelect: "none",
-      touchAction: "manipulation",
+      touchAction: "none",
       height: "100dvh",
       display: "flex",
       flexDirection: "column",
@@ -1481,7 +1481,7 @@ type="file"
         setObjects(prev =>
   prev.map(o =>
     o.id === selectedObj.id
-      ? changePivot(o, (o.pivotMode + 1) % 5)
+      ? changePivot(o, (o.pivotMode + 1) % 4)
       : o
   )
 )
