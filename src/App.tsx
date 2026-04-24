@@ -83,17 +83,13 @@ const changePivot = (obj: Obj, newMode: number): Obj => {
   const newObj = { ...obj, pivotMode: newMode }
   const [newPx, newPy] = getPivot(newObj)
 
-  // pivot差分（ローカル）
-  const dx = newPx - oldPx
-  const dy = newPy - oldPy
+  // pivot差分（同じx,yでの差分）
+  const dpx = newPx - oldPx
+  const dpy = newPy - oldPy
 
-  // ★ 逆回転させる（ここが超重要）
-  const correctedDx =
-    dx * Math.cos(rad) + dy * Math.sin(rad)
-
-  const correctedDy =
-    -dx * Math.sin(rad) + dy * Math.cos(rad)
-
+  // 位置補正（回転中心が変わっても見た目が変わらないように）
+  const correctedDx = dpx * (Math.cos(rad) - 1) - dpy * Math.sin(rad)
+  const correctedDy = dpx * Math.sin(rad) + dpy * (Math.cos(rad) - 1)
   return {
     ...newObj,
     x: obj.x + correctedDx,
@@ -1398,7 +1394,7 @@ type="file"
     cm
     </div>
     <div>
-      幅:
+      高さ:
     <input
       value={customSize.h}
       onChange={(e) =>
@@ -1447,18 +1443,18 @@ type="file"
     width: "100%",
     boxSizing: "border-box",
     background: "#ddd",
-    padding: 10,
+    padding: "6px 8px",
     zIndex: 60,
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
-    gap: 20, 
+    justifyContent: "space-between",
+    gap: 0,
   }}
 >
 
   {/* ===== 左ブロック ===== */}
-  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+  <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
 
     {/* 上段 */}
     <div style={{ display: "flex", gap: 10 , minWidth: 200 }}>
@@ -1601,9 +1597,10 @@ type="file"
   {/* ===== 右：ジョイスティック ===== */}
   <div style={{
     display: "grid",
-    gridTemplateColumns: "60px 60px 60px",
-    gridTemplateRows: "60px 60px",
-    gap: 6
+    gridTemplateColumns: "repeat(3, clamp(36px, 10vw, 56px))",
+    gridTemplateRows: "repeat(2, clamp(36px, 10vw, 56px))",
+    gap: "clamp(2px, 1vw, 6px)",
+    flexShrink: 0
   }}>
 
     <button onPointerDown={() => setRotateDir(-1)}
