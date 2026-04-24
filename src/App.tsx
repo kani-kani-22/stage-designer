@@ -209,12 +209,43 @@ if (r.getAttribute("stroke") === "none") return false
   const [helpPage, setHelpPage] = useState(0)
   const helpPages = [
   {
-    img: "https://via.placeholder.com/300x180?text=Page1",
-    text: "パーツは右パネルから追加できます"
+    img: "/partssetting.gif",
+    text: "パーツボタンから、パネルや平台を出すことができます"
   },
   {
-    img: "https://via.placeholder.com/300x180?text=Page2",
-    text: "ドラッグで移動、下パネルで細かく調整できます"
+    img: "/partsmoving.gif",
+    text: "画面下右側のボタンでパーツを移動・回転させられます\n(ドラッグ機能は動作が微妙です。そのうち直します)"
+  },
+  { 
+    img: "/input.gif",
+    text: "数値を入力することでも移動・回転が可能です"  },
+  {
+    img: "/pivotrotating.gif",
+    text: "「角」「中心」ボタンでは、回転の中心と座標表示の基準点を変えられます"
+  },
+  {
+    img: "/partslayer.gif",
+    text: "動かすパーツを変えるときは、画面下の名前をタップしてください/n(パーツを直接タッチしても選択できますが、パネルは難しいです)/n名前の下の左右ボタンで表示順を変更できます"
+  },
+  {
+    img: "/curtain.gif",
+    text: "パーツボタンから、幕を開閉することができます"
+  },
+  {
+    img: "/customparts.gif",
+    text: "カスタム追加ボタンから、長方形や楕円形のパーツも追加することができます"
+  },
+  {
+    img: "/importsvg.gif",
+    text: "SVG保存によって、保存したものを下のファイル選択ボタンから読み込んで、途中から再開することができます\n(SVG形式のファイルはスマホの画像アプリでは開けないことが多いので、ファイル名を変更するなどで区別してください)"
+  },
+  {
+    img: "/stagepng.png",
+    text: "PNG保存では、通常の画像形式で保存できます"
+  },
+  {
+    img: "/kenmode.gif",
+    text: "間モードをオンにすると、センターライン/舞台客席側から何間かで座標を入力できます\n回転・座標表示の基準点変更機能と組み合わせて使ってみてください。"
   }
   ]
 
@@ -968,7 +999,11 @@ type="file"
 <div style={{ whiteSpace: "pre-line", textAlign: "left", paddingLeft: 10  }}>
 {`2026/04/19:
 ・間モードを追加
-・回転中心を追加`}
+・回転中心を追加
+
+2026/04/25:
+・回転中心に関するバグを修正
+・使い方を整備`}
 </div>
     <button
     style={
