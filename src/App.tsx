@@ -13,6 +13,7 @@ type Obj = {
   name: string
   shape?: "rect" | "ellipse"
   pivotMode: number
+  pattern?: "none" | "diagonal" | "dots"
 }
 const getRotation = (el: Element): number => {
   let current: Element | null = el
@@ -122,6 +123,10 @@ if (r.getAttribute("stroke") === "none") return false
   if (x === 0 && y === 0 && w >= 180 && h >= 180) return false
   return true
 })
+const ellipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
+    if (el.getAttribute("stroke") === "none") return false
+    return true
+  })
   let counters = {
   パネル: 0,
   サブロク: 0,
@@ -132,12 +137,11 @@ if (r.getAttribute("stroke") === "none") return false
   SS: 0,
   カスタム: 0
 }
-  const newObjs = rects.map((r, i) => {
-  const w = Number(r.getAttribute("width") || 50)
-  const h = Number(r.getAttribute("height") || 50)
-
-  let name = ""
-  let type: "panel" | "platform" = "panel"
+  const rectObjs = rects.map((r, i) => {
+    const w = Number(r.getAttribute("width") || 50)
+    const h = Number(r.getAttribute("height") || 50)
+    let name = ""
+    let type: "panel" | "platform" = "panel"
 
   if (w === 182 && h === 182) {
     counters.ロクロク++
@@ -179,6 +183,7 @@ if (r.getAttribute("stroke") === "none") return false
   return {
     id: Date.now() + i,
     type,
+    shape: "rect" as const,
     x: Number(r.getAttribute("x") || 0),
     y: Number(r.getAttribute("y") || 0),
     width: w,
@@ -189,7 +194,29 @@ if (r.getAttribute("stroke") === "none") return false
     pivotMode: 4 ,
   }
 })
-    setObjects(newObjs)
+  const ellipseObjs = ellipses.map((el, i) => {
+    const rx = Number(el.getAttribute("rx") || 25)
+    const ry = Number(el.getAttribute("ry") || 25)
+    const cx = Number(el.getAttribute("cx") || 0)
+    const cy = Number(el.getAttribute("cy") || 0)
+    const w = rx * 2
+    const h = ry * 2
+    counters.カスタム++
+    return {
+      id: Date.now() + 10000 + i,
+      type: "panel" as const,
+      shape: "ellipse" as const,
+      x: cx - rx,
+      y: cy - ry,
+      width: w, height: h,
+      rotation: getRotation(el),
+      zIndex: rects.length + i,
+      name: `カスタム${counters.カスタム}`,
+      pivotMode: 4,
+    }
+  })
+
+  setObjects([...rectObjs, ...ellipseObjs])
   }
   reader.readAsText(file)
 }
@@ -246,6 +273,9 @@ if (r.getAttribute("stroke") === "none") return false
   {
     img: "/kenmode.gif",
     text: "間モードをオンにすると、センターライン/舞台客席側から何間かで座標を入力できます\n回転・座標表示の基準点変更機能と組み合わせて使ってみてください。"
+  },
+  {
+    text: "その他機能として、SSの光路を表示したり、カスタムパーツに模様を追加したりすることができます。"
   }
   ]
 
@@ -300,6 +330,7 @@ if (r.getAttribute("stroke") === "none") return false
   const [isTouching, setIsTouching] = useState(false)
   const isMobile = window.innerWidth < 768
 
+  const [showSSBeam, setShowSSBeam] = useState(false)
 
   {/* 間モード関係*/}  
   const [useKen, setUseKen] = useState(false)
@@ -337,7 +368,7 @@ const applyY = (value: number, obj: Obj) => {
 
 
 
- const [customSize, setCustomSize] = useState({ w: "182", h: "182" })
+ const [customSize, setCustomSize] = useState({ w: "182", h: "182", pattern: "none" as "none" | "diagonal" | "dots" })
   const getNextNumber = (type: string) => {
   return objects.filter(o => o.name.startsWith(type)).length + 1
 }
@@ -409,7 +440,7 @@ useEffect(() => {
     style={{
       userSelect: "none",
       WebkitUserSelect: "none",
-      touchAction: "none",
+      touchAction: "manipulation",
       height: "100dvh",
       display: "flex",
       flexDirection: "column",
@@ -628,82 +659,19 @@ useEffect(() => {
         
         {/* 背景 */}
         <rect x="0" y="0" width={stageWidth} height={stageHeight} fill="white" />
-{/* 幕（左：なめらか波） */}
-<path
-  d={(() => {
-    const offset = stageWidth * curtain.front / 2
-    const centerY = stageHeight / 2
-    const amplitude = 20   // 波の高さ
-    const wavelength = 100 // 波の長さ
 
-    let path = `M 0 ${centerY}`
-
-    for (let x = 0; x <= offset; x += 2) {
-      const y = centerY + amplitude * Math.sin((2 * Math.PI * x) / wavelength)
-      path += ` L ${x} ${y}`
-    }
-
-    return path
-  })()}
-  fill="none"
-  stroke="black"
-  strokeWidth="5"
-/>
-
-{/* 幕（右：なめらか波） */}
-<path
-  d={(() => {
-    const offset = stageWidth * curtain.front / 2
-    const centerY = stageHeight / 2
-    const amplitude = 20
-    const wavelength = 100
-
-    let path = `M ${stageWidth} ${centerY}`
-
-    for (let x = 0; x <= offset; x += 2) {
-      const y = centerY + amplitude * Math.sin((2 * Math.PI * x) / wavelength)
-      path += ` L ${stageWidth - x} ${y}`
-    }
-
-    return path
-  })()}
-  fill="none"
-  stroke="black"
-  strokeWidth="5"
-/>
-{/* 固定幕 */}
-{drawSideCurtain(182 * 1.8)}
-{drawSideCurtain(182 * 3.1)}
-{drawSideCurtain(stageHeight - 182 * 1.25)}
-{drawSideCurtain(stageHeight - 182 * 2.75)}
-{/* 紗幕（点線・下から3.75間） */}
-<line
-  x1="0"
-  x2={stageWidth}
-  y1={stageHeight - 182 * 3.75}
-  y2={stageHeight - 182 * 3.75}
-  stroke="black"
-  strokeDasharray="10 10"
-  strokeWidth="5"
-  opacity={curtain.gauze ? 1 : 0}
-/>
-
-{/* 大黒幕（上から0.5間） */}
-<line
-  x1="0"
-  x2={stageWidth}
-  y1={182 * 0.5}
-  y2={182 * 0.5}
-  stroke="black"
-  strokeWidth="5"
-  opacity={curtain.back ? 1 : 0}
-/>
 
 
         {/* グリッド */}
         <defs>
           <pattern id="grid" width="182" height="182" patternUnits="userSpaceOnUse">
             <rect width="182" height="182" fill="none" stroke="#ccc" strokeWidth="1" />
+          </pattern>
+          <pattern id="pat-diagonal" width="10" height="10" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="10" x2="10" y2="0" stroke="#888" strokeWidth="1.5" />
+          </pattern>
+          <pattern id="pat-dots" width="10" height="10" patternUnits="userSpaceOnUse">
+            <circle cx="5" cy="5" r="1.5" fill="#888" />
           </pattern>
         </defs>
 
@@ -855,25 +823,49 @@ useEffect(() => {
   </g>
 
 ) : obj.shape === "ellipse" ? (
-  <ellipse
-    cx={obj.x + obj.width / 2}
-    cy={obj.y + obj.height / 2}
-    rx={obj.width / 2}
-    ry={obj.height / 2}
-    fill="white"
-    stroke="black"
-    strokeWidth="4"
-  />
+  <g>
+    <ellipse
+      cx={obj.x + obj.width / 2}
+      cy={obj.y + obj.height / 2}
+      rx={obj.width / 2}
+      ry={obj.height / 2}
+      fill="white"
+      stroke="black"
+      strokeWidth="4"
+    />
+    {obj.pattern && obj.pattern !== "none" && (
+      <ellipse
+        cx={obj.x + obj.width / 2}
+        cy={obj.y + obj.height / 2}
+        rx={obj.width / 2}
+        ry={obj.height / 2}
+        fill={`url(#pat-${obj.pattern})`}
+        stroke="none"
+      />
+    )}
+  </g>
 ) : (
-  <rect
-    x={obj.x}
-    y={obj.y}
-    width={obj.width}
-    height={obj.height}
-    fill="white"
-    stroke="black"
-    strokeWidth="4"
-  />
+  <g>
+    <rect
+      x={obj.x}
+      y={obj.y}
+      width={obj.width}
+      height={obj.height}
+      fill="white"
+      stroke="black"
+      strokeWidth="4"
+    />
+    {obj.pattern && obj.pattern !== "none" && (
+      <rect
+        x={obj.x}
+        y={obj.y}
+        width={obj.width}
+        height={obj.height}
+        fill={`url(#pat-${obj.pattern})`}
+        stroke="none"
+      />
+    )}
+  </g>
 )}
 {selectedId === obj.id && !isExporting && (() => {
   const [px, py] = getPivot(obj)
@@ -897,7 +889,108 @@ useEffect(() => {
             </g>
           )
         })}
-        
+        {/* SS光路 */}
+        {showSSBeam && objects.filter(o => o.name.startsWith("SS")).map(obj => {
+          const rad = (obj.rotation * Math.PI) / 180
+          // 半円側の上端・下端（ローカル座標）
+          const localPoints: [number, number][] = [
+            [obj.x, obj.y],
+            [obj.x, obj.y + obj.height],
+          ]
+          return localPoints.map(([lx, ly], pi) => {
+            const [px, py] = getPivot(obj)
+            // 回転適用
+            const dx = lx - px, dy = ly - py
+            const rx = dx * Math.cos(rad) - dy * Math.sin(rad) + px
+            const ry = dx * Math.sin(rad) + dy * Math.cos(rad) + py
+            // 方向ベクトル（半円の向きは左＝-x方向）
+            const dirX = -Math.cos(rad)
+            const dirY = -Math.sin(rad)
+            const far = 3000
+            return (
+              <line
+                key={`ss-beam-${obj.id}-${pi}`}
+                x1={rx} y1={ry}
+                x2={rx + dirX * far}
+                y2={ry + dirY * far}
+                stroke="black"
+                strokeWidth="2"
+                strokeDasharray="12 6 3 6"
+                opacity="0.4"
+              />
+            )
+          })
+        })}
+ {/* 幕（左：なめらか波） */}
+<path
+  d={(() => {
+    const offset = stageWidth * curtain.front / 2
+    const centerY = stageHeight / 2
+    const amplitude = 20   // 波の高さ
+    const wavelength = 100 // 波の長さ
+
+    let path = `M 0 ${centerY}`
+
+    for (let x = 0; x <= offset; x += 2) {
+      const y = centerY + amplitude * Math.sin((2 * Math.PI * x) / wavelength)
+      path += ` L ${x} ${y}`
+    }
+
+    return path
+  })()}
+  fill="none"
+  stroke="black"
+  strokeWidth="5"
+/>
+
+{/* 幕（右：なめらか波） */}
+<path
+  d={(() => {
+    const offset = stageWidth * curtain.front / 2
+    const centerY = stageHeight / 2
+    const amplitude = 20
+    const wavelength = 100
+
+    let path = `M ${stageWidth} ${centerY}`
+
+    for (let x = 0; x <= offset; x += 2) {
+      const y = centerY + amplitude * Math.sin((2 * Math.PI * x) / wavelength)
+      path += ` L ${stageWidth - x} ${y}`
+    }
+
+    return path
+  })()}
+  fill="none"
+  stroke="black"
+  strokeWidth="5"
+/>
+{/* 固定幕 */}
+{drawSideCurtain(182 * 1.8)}
+{drawSideCurtain(182 * 3.1)}
+{drawSideCurtain(stageHeight - 182 * 1.25)}
+{drawSideCurtain(stageHeight - 182 * 2.75)}
+{/* 紗幕（点線・下から3.75間） */}
+<line
+  x1="0"
+  x2={stageWidth}
+  y1={stageHeight - 182 * 3.75}
+  y2={stageHeight - 182 * 3.75}
+  stroke="black"
+  strokeDasharray="10 10"
+  strokeWidth="5"
+  opacity={curtain.gauze ? 1 : 0}
+/>
+
+{/* 大黒幕（上から0.5間） */}
+<line
+  x1="0"
+  x2={stageWidth}
+  y1={182 * 0.5}
+  y2={182 * 0.5}
+  stroke="black"
+  strokeWidth="5"
+  opacity={curtain.back ? 1 : 0}
+/>
       </svg>
 {/*ファイル保存*/}
 <input
@@ -911,7 +1004,7 @@ type="file"
    marginLeft: 10  
   }}
 />
-{/* 間モードトグル */}
+{/* 間モード・SS光路トグル */}
 <div style={{ marginLeft: 10, marginBottom: 10 }}>
   <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
     間モード
@@ -919,6 +1012,14 @@ type="file"
       type="checkbox"
       checked={useKen}
       onChange={(e) => setUseKen(e.target.checked)}
+    />
+  </label>
+  <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+    SSの光路
+    <input
+      type="checkbox"
+      checked={showSSBeam}
+      onChange={(e) => setShowSSBeam(e.target.checked)}
     />
   </label>
 </div>
@@ -974,7 +1075,10 @@ type="file"
 
 </div>
 
-    <div style={{ marginBottom: 10 }}>
+    <div style={{ 
+      marginBottom: 10,
+      whiteSpace: "pre-line"
+    }}>
       {helpPages[helpPage].text}
     </div>
 
@@ -1003,7 +1107,14 @@ type="file"
 
 2026/04/25:
 ・回転中心に関するバグを修正
-・使い方を整備`}
+・使い方を整備
+
+2026/04/25:
+・円形カスタムパーツインポート時のバグを修正
+・SSの光路表示機能を追加
+・カスタムパーツに模様機能を追加
+・レイヤー一覧の反応を改善
+`}
 </div>
     <button
     style={
@@ -1047,32 +1158,22 @@ type="file"
   {objects.map(obj => (
     <div
       key={obj.id}
+      onClick={() => setSelectedId(obj.id === selectedId ? null : obj.id)}
       style={{
         minWidth: isMobile ? 100 : 140,
         minHeight: isMobile ? 90 : 110,
         padding: isMobile ? "6px" : "10px",
         border: obj.id === selectedId ? "3px solid red" : "1px solid #ccc",
         borderRadius: 5,
-        background: "#fafafa"
+        background: obj.id === selectedId ? "#ffdede" : "#fafafa",
+        cursor: "pointer",
+        userSelect: "none",
+        WebkitUserSelect: "none",
       }}
     >
-      {/* 名前クリックで選択 */}
-      <div
-  onClick={() =>
-  setSelectedId(obj.id === selectedId ? null : obj.id)
-}
-  style={{
-    cursor: "pointer",
-    padding: "6px",
-    fontSize: 14,
-    userSelect: "none",
-    WebkitUserSelect: "none",
-    borderRadius: 3,
-    background: obj.id === selectedId ? "#ffdede" : "transparent"
-  }}
->
-  {obj.name}
-</div>
+      <div style={{ fontSize: 14, padding: "6px" }}>
+        {obj.name}
+      </div>
 {selectedId === obj.id && (
   <div style={{ display: "flex", justifyContent: "space-between",
      marginTop: 4 , flexShrink: 0 }}>
@@ -1439,6 +1540,19 @@ type="file"
     cm
     </div>
 
+    <div style={{ marginTop: 10, marginBottom: 10 }}>
+      模様:
+      <select
+        value={customSize.pattern || "none"}
+        onChange={(e) =>
+          setCustomSize({ ...customSize, pattern: e.target.value as "none" | "diagonal" | "dots" })
+        }
+      >
+        <option value="none">なし</option>
+        <option value="diagonal">斜線</option>
+        <option value="dots">ドット</option>
+      </select>
+    </div>
 
     <button
       onClick={() => {
@@ -1454,6 +1568,7 @@ type="file"
           shape: customShape ,
           name: `カスタム${getNextNumber("カスタム")}`,
           pivotMode: 4 ,
+          pattern: customSize.pattern
         }
 
         setObjects([...objects, newObj])
@@ -1483,13 +1598,12 @@ type="file"
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     gap: 0,
   }}
 >
 
   {/* ===== 左ブロック ===== */}
-  <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
+  <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0, overflow: "hidden" }}>
 
     {/* 上段 */}
     <div style={{ display: "flex", gap: 10 , minWidth: 200 }}>
@@ -1631,6 +1745,7 @@ type="file"
 
   {/* ===== 右：ジョイスティック ===== */}
   <div style={{
+    flex: 1,
     display: "grid",
     gridTemplateColumns: "repeat(3, clamp(36px, 10vw, 56px))",
     gridTemplateRows: "repeat(2, clamp(36px, 10vw, 56px))",
