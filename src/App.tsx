@@ -144,7 +144,20 @@ const ellipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
     let type: "panel" | "platform" = "panel"
     let pattern: "none" | "diagonal" | "dots" = "none"
     
-  if (w === 182 && h === 182) {
+    const fill = r.getAttribute("fill") || ""
+    const hasPattern = fill.includes("pat-diagonal") || fill.includes("pat-dots")
+    
+    if (hasPattern) {
+      // 模様がある場合はカスタム扱い
+      counters.カスタム++
+      name = `カスタム${counters.カスタム}`
+      type = "panel" as const
+      if (fill.includes("pat-diagonal")) {
+        pattern = "diagonal"
+      } else if (fill.includes("pat-dots")) {
+        pattern = "dots"
+      }
+    } else if (w === 182 && h === 182) {
     counters.ロクロク++
     name = `ロクロク${counters.ロクロク}`
     type = "platform"
@@ -177,13 +190,6 @@ const ellipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
     name = `カスタム${counters.カスタム}`
     type = "panel" as const
 
-    // カスタムパーツの模様を判定
-    const fill = r.getAttribute("fill") || ""
-    if (fill.includes("pat-diagonal")) {
-      pattern = "diagonal"
-    } else if (fill.includes("pat-dots")) {
-      pattern = "dots"
-    }
   }
 
   // 回転取得
@@ -1621,7 +1627,8 @@ type="file"
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
-    gap: 0,
+    justifyContent: "space-between",
+    gap: 8,
   }}
 >
 
@@ -1768,12 +1775,15 @@ type="file"
 
   {/* ===== 右：ジョイスティック ===== */}
   <div style={{
-    flex: 1,
     display: "grid",
     gridTemplateColumns: "repeat(3, clamp(36px, 10vw, 56px))",
     gridTemplateRows: "repeat(2, clamp(36px, 10vw, 56px))",
     gap: "clamp(2px, 1vw, 6px)",
-    flexShrink: 0
+    flexShrink: 1,
+    flex: 1,
+    maxWidth: 250,
+    aspectRatio: "3 / 2",
+    minHeight: 100
   }}>
 
     <button onPointerDown={() => setRotateDir(-1)}
