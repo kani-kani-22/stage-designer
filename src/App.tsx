@@ -142,7 +142,8 @@ const ellipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
     const h = Number(r.getAttribute("height") || 50)
     let name = ""
     let type: "panel" | "platform" = "panel"
-
+    let pattern: "none" | "diagonal" | "dots" = "none"
+    
   if (w === 182 && h === 182) {
     counters.ロクロク++
     name = `ロクロク${counters.ロクロク}`
@@ -175,6 +176,14 @@ const ellipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
     counters.カスタム++
     name = `カスタム${counters.カスタム}`
     type = "panel" as const
+
+    // カスタムパーツの模様を判定
+    const fill = r.getAttribute("fill") || ""
+    if (fill.includes("pat-diagonal")) {
+      pattern = "diagonal"
+    } else if (fill.includes("pat-dots")) {
+      pattern = "dots"
+    }
   }
 
   // 回転取得
@@ -192,6 +201,7 @@ const ellipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
     zIndex: i,
     name,
     pivotMode: 4 ,
+    pattern
   }
 })
   const ellipseObjs = ellipses.map((el, i) => {
@@ -202,6 +212,16 @@ const ellipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
     const w = rx * 2
     const h = ry * 2
     counters.カスタム++
+
+    // 楕円の模様を判定
+    const fill = el.getAttribute("fill") || ""
+    let pattern: "none" | "diagonal" | "dots" = "none"
+    if (fill.includes("pat-diagonal")) {
+      pattern = "diagonal"
+    } else if (fill.includes("pat-dots")) {
+      pattern = "dots"
+    }
+
     return {
       id: Date.now() + 10000 + i,
       type: "panel" as const,
@@ -213,6 +233,7 @@ const ellipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
       zIndex: rects.length + i,
       name: `カスタム${counters.カスタム}`,
       pivotMode: 4,
+      pattern
     }
   })
 
@@ -671,7 +692,7 @@ useEffect(() => {
             <line x1="0" y1="10" x2="10" y2="0" stroke="#888" strokeWidth="1.5" />
           </pattern>
           <pattern id="pat-dots" width="10" height="10" patternUnits="userSpaceOnUse">
-            <circle cx="5" cy="5" r="1.5" fill="#888" />
+            <circle cx="7.5" cy="7.5" r="3" fill="#888" />
           </pattern>
         </defs>
 
@@ -1180,7 +1201,8 @@ type="file"
     
     <button 
     style={{ width: 30, height: 30 }}
-    onClick={() => {
+    onClick={(e) => {
+      e.stopPropagation()
       setObjects(prev => {
         const i = prev.findIndex(o => o.id === obj.id)
         if (i <= 0) return prev
@@ -1194,7 +1216,8 @@ type="file"
 
     <button 
     style={{ width: 30, height: 30 }}
-    onClick={() => {
+    onClick={(e) => {
+      e.stopPropagation()
       setObjects(prev => {
         const i = prev.findIndex(o => o.id === obj.id)
         if (i >= prev.length - 1) return prev
@@ -1292,8 +1315,8 @@ type="file"
       const newObj = {
         id: Date.now(),
         type: "panel" as const,
-        x: 1001,
-        y: 819,
+        x: 1001 - 91 / 2,
+        y: 819 - 10 / 2,
         width: 91,
         height: 10,
         rotation: 0,
@@ -1350,8 +1373,8 @@ type="file"
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
-        x: 1001,
-        y: 819,
+        x: 1001 - 91 / 2,
+        y: 819 - 182 / 2,
         width: 91,
         height: 182,
         rotation: 0,
@@ -1374,8 +1397,8 @@ type="file"
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
-        x: 1001,
-        y: 819,
+        x: 1001 - 91 / 2,
+        y: 819 - 91 / 2,
         width: 91,
         height: 91,
         rotation: 0,
@@ -1398,8 +1421,8 @@ type="file"
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
-        x: 1001,
-        y: 819,
+        x: 1001 - 182 / 2,
+        y: 819 - 182 / 2,
         width: 182,
         height: 182,
         rotation: 0,
@@ -1427,8 +1450,8 @@ type="file"
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
-        x: 1001,
-        y: 819,
+        x: 1001 - 182 / 2,
+        y: 819 - 91 / 2,
         width: 182,
         height: 91,
         rotation: 0,
@@ -1451,8 +1474,8 @@ type="file"
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
-        x: 1001,
-        y: 819,
+        x: 1001 - 50 / 2,
+        y: 819 - 24 / 2,
         width: 50,
         height: 24,
         rotation: 0,
@@ -1475,8 +1498,8 @@ type="file"
       const newObj: Obj = {
         id: Date.now(),
         type: "platform",
-        x: 1001,
-        y: 819,
+        x: 1001 - 48 / 2,
+        y: 819 - 34 / 2,
         width: 48,
         height: 34,
         rotation: 0,
@@ -1559,8 +1582,8 @@ type="file"
         const newObj = {
           id: Date.now(),
           type: "panel" as const,
-          x: 1001,
-          y: 819,
+          x: 1001 - Number(customSize.w) / 2,
+          y: 819 - Number(customSize.h) / 2,
           width: Number(customSize.w),
           height: Number(customSize.h),
           rotation: 0,
