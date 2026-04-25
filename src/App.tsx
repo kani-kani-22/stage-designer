@@ -109,107 +109,116 @@ const changePivot = (obj: Obj, newMode: number): Obj => {
     const parser = new DOMParser()
     const doc = parser.parseFromString(text, "image/svg+xml")
 
-  const rects = Array.from(doc.querySelectorAll("rect")).filter(r => {
-  const w = Number(r.getAttribute("width") || 0)
-  const h = Number(r.getAttribute("height") || 0)
-  const x = Number(r.getAttribute("x") || 0)
-  const y = Number(r.getAttribute("y") || 0)
+  const allRects = Array.from(doc.querySelectorAll("rect")).filter(r => {
+    const w = Number(r.getAttribute("width") || 0)
+    const h = Number(r.getAttribute("height") || 0)
+    const x = Number(r.getAttribute("x") || 0)
+    const y = Number(r.getAttribute("y") || 0)
+    const fill = r.getAttribute("fill") || ""
 
-  // ステージサイズ除外
-  if (w === stageWidth && h === stageHeight) return false
-    // strokeがnoneなら除外（背景防止）
-if (r.getAttribute("stroke") === "none") return false
-// 左上固定のゴミ除外（←これ追加）
-  if (x === 0 && y === 0 && w >= 180 && h >= 180) return false
-  return true
-})
-const ellipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
-    if (el.getAttribute("stroke") === "none") return false
+    if (w === stageWidth && h === stageHeight) return false
+    if (r.getAttribute("stroke") === "none") return false
+    if (x === 0 && y === 0 && w >= 180 && h >= 180) return false
+    // 模様用のrect（fill="url(#pat-...)"）は除外
+    if (fill.startsWith("url(#pat-")) return false
     return true
   })
+
+  const ellipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
+    const fill = el.getAttribute("fill") || ""
+    if (el.getAttribute("stroke") === "none") return false
+    // 模様用のellipseは除外
+    if (fill.startsWith("url(#pat-")) return false
+    return true
+  })
+
+  // 模様用rectをx,y,w,hをキーにしてMapに変換
+  const patternRects = Array.from(doc.querySelectorAll("rect")).filter(r => {
+    const fill = r.getAttribute("fill") || ""
+    return fill.startsWith("url(#pat-")
+  })
+  const patternMap = new Map<string, "diagonal" | "dots">()
+  patternRects.forEach(r => {
+    const x = r.getAttribute("x") || "0"
+    const y = r.getAttribute("y") || "0"
+    const w = r.getAttribute("width") || "0"
+    const h = r.getAttribute("height") || "0"
+    const fill = r.getAttribute("fill") || ""
+    const key = `${x},${y},${w},${h}`
+    if (fill.includes("pat-diagonal")) patternMap.set(key, "diagonal")
+    else if (fill.includes("pat-dots")) patternMap.set(key, "dots")
+  })
+
+  // 模様用ellipseも同様に
+  const patternEllipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
+    const fill = el.getAttribute("fill") || ""
+    return fill.startsWith("url(#pat-")
+  })
+  const patternEllipseMap = new Map<string, "diagonal" | "dots">()
+  patternEllipses.forEach(el => {
+    const cx = el.getAttribute("cx") || "0"
+    const cy = el.getAttribute("cy") || "0"
+    const rx = el.getAttribute("rx") || "0"
+    const ry = el.getAttribute("ry") || "0"
+    const fill = el.getAttribute("fill") || ""
+    const key = `${cx},${cy},${rx},${ry}`
+    if (fill.includes("pat-diagonal")) patternEllipseMap.set(key, "diagonal")
+    else if (fill.includes("pat-dots")) patternEllipseMap.set(key, "dots")
+  })
+
   let counters = {
-  パネル: 0,
-  サブロク: 0,
-  サンサン: 0,
-  ロクロク: 0,
-  スモーク: 0,
-  影段: 0,
-  SS: 0,
-  カスタム: 0
-}
-  const rectObjs = rects.map((r, i) => {
+    パネル: 0, サブロク: 0, サンサン: 0, ロクロク: 0,
+    スモーク: 0, 影段: 0, SS: 0, カスタム: 0
+  }
+
+  const rectObjs = allRects.map((r, i) => {
     const w = Number(r.getAttribute("width") || 50)
     const h = Number(r.getAttribute("height") || 50)
+    const xAttr = r.getAttribute("x") || "0"
+    const yAttr = r.getAttribute("y") || "0"
+
+    // 模様を座標キーで照合
+    const patKey = `${xAttr},${yAttr},${w},${h}`
+    const pattern: "none" | "diagonal" | "dots" = patternMap.get(patKey) ?? "none"
+
     let name = ""
     let type: "panel" | "platform" = "panel"
-    let pattern: "none" | "diagonal" | "dots" = "none"
-    
-    const fill = r.getAttribute("fill") || ""
-    const hasPattern = fill.includes("pat-diagonal") || fill.includes("pat-dots")
-    
-    if (hasPattern) {
-      // 模様がある場合はカスタム扱い
+
+    // 模様がある場合はカスタム扱い（サイズが既存と一致していても）
+    if (pattern !== "none") {
       counters.カスタム++
       name = `カスタム${counters.カスタム}`
-      type = "panel" as const
-      if (fill.includes("pat-diagonal")) {
-        pattern = "diagonal"
-      } else if (fill.includes("pat-dots")) {
-        pattern = "dots"
-      }
+      type = "panel"
     } else if (w === 182 && h === 182) {
-    counters.ロクロク++
-    name = `ロクロク${counters.ロクロク}`
-    type = "platform"
-  } else if (w === 91 && h === 182) {
-    counters.サブロク++
-    name = `サブロク${counters.サブロク}`
-    type = "platform"
-  } else if (w === 91 && h === 91) {
-    counters.サンサン++
-    name = `サンサン${counters.サンサン}`
-    type = "platform"
-  } else if (w === 91 && h === 10) {
-    counters.パネル++
-    name = `パネル${counters.パネル}`
-    type = "panel" as const
-  } else if (w === 48 && h === 34) {
-  counters.SS = (counters.SS || 0) + 1
-  name = `SS${counters.SS}`
-  type = "platform"
-  } else if (w === 50 && h === 24) {
-  counters.スモーク = (counters.スモーク || 0) + 1
-  name = `スモーク${counters.スモーク}`
-  type = "platform"
-  } else if (w === 182 && h === 91) {
-  counters.影段 = (counters.影段 || 0) + 1
-  name = `影段${counters.影段}`
-  type = "platform"
-  } else {
-    counters.カスタム++
-    name = `カスタム${counters.カスタム}`
-    type = "panel" as const
+      counters.ロクロク++; name = `ロクロク${counters.ロクロク}`; type = "platform"
+    } else if (w === 91 && h === 182) {
+      counters.サブロク++; name = `サブロク${counters.サブロク}`; type = "platform"
+    } else if (w === 91 && h === 91) {
+      counters.サンサン++; name = `サンサン${counters.サンサン}`; type = "platform"
+    } else if (w === 91 && h === 10) {
+      counters.パネル++; name = `パネル${counters.パネル}`; type = "panel"
+    } else if (w === 48 && h === 34) {
+      counters.SS++; name = `SS${counters.SS}`; type = "platform"
+    } else if (w === 50 && h === 24) {
+      counters.スモーク++; name = `スモーク${counters.スモーク}`; type = "platform"
+    } else if (w === 182 && h === 91) {
+      counters.影段++; name = `影段${counters.影段}`; type = "platform"
+    } else {
+      counters.カスタム++; name = `カスタム${counters.カスタム}`; type = "panel"
+    }
 
-  }
+    return {
+      id: Date.now() + i,
+      type,
+      shape: "rect" as const,
+      x: Number(xAttr),
+      y: Number(yAttr),
+      width: w, height: h,
+      rotation: getRotation(r),
+      zIndex: i, name, pivotMode: 4, pattern
+    }
+  })
 
-  // 回転取得
- const rotation = getRotation(r)
-
-  return {
-    id: Date.now() + i,
-    type,
-    shape: "rect" as const,
-    x: Number(r.getAttribute("x") || 0),
-    y: Number(r.getAttribute("y") || 0),
-    width: w,
-    height: h,
-    rotation,
-    zIndex: i,
-    name,
-    pivotMode: 4 ,
-    pattern
-  }
-})
   const ellipseObjs = ellipses.map((el, i) => {
     const rx = Number(el.getAttribute("rx") || 25)
     const ry = Number(el.getAttribute("ry") || 25)
@@ -217,29 +226,21 @@ const ellipses = Array.from(doc.querySelectorAll("ellipse")).filter(el => {
     const cy = Number(el.getAttribute("cy") || 0)
     const w = rx * 2
     const h = ry * 2
+
+    const patKey = `${el.getAttribute("cx")},${el.getAttribute("cy")},${rx},${ry}`
+    const pattern: "none" | "diagonal" | "dots" = patternEllipseMap.get(patKey) ?? "none"
+
     counters.カスタム++
-
-    // 楕円の模様を判定
-    const fill = el.getAttribute("fill") || ""
-    let pattern: "none" | "diagonal" | "dots" = "none"
-    if (fill.includes("pat-diagonal")) {
-      pattern = "diagonal"
-    } else if (fill.includes("pat-dots")) {
-      pattern = "dots"
-    }
-
     return {
       id: Date.now() + 10000 + i,
       type: "panel" as const,
       shape: "ellipse" as const,
-      x: cx - rx,
-      y: cy - ry,
+      x: cx - rx, y: cy - ry,
       width: w, height: h,
       rotation: getRotation(el),
-      zIndex: rects.length + i,
+      zIndex: allRects.length + i,
       name: `カスタム${counters.カスタム}`,
-      pivotMode: 4,
-      pattern
+      pivotMode: 4, pattern
     }
   })
 
