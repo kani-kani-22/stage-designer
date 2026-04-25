@@ -691,15 +691,15 @@ useEffect(() => {
 
 
         {/* グリッド */}
-        <defs>
+                <defs>
           <pattern id="grid" width="182" height="182" patternUnits="userSpaceOnUse">
             <rect width="182" height="182" fill="none" stroke="#ccc" strokeWidth="1" />
           </pattern>
-          <pattern id="pat-diagonal" width="10" height="10" patternUnits="userSpaceOnUse">
-            <line x1="0" y1="10" x2="10" y2="0" stroke="#888" strokeWidth="1.5" />
+          <pattern id="pat-diagonal" width="40" height="40" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="20" x2="20" y2="0" stroke="#888" strokeWidth="3.5" />
           </pattern>
-          <pattern id="pat-dots" width="10" height="10" patternUnits="userSpaceOnUse">
-            <circle cx="7.5" cy="7.5" r="3" fill="#888" />
+          <pattern id="pat-dots" width="40" height="40" patternUnits="userSpaceOnUse">
+            <circle cx="20" cy="20" r="6" fill="#888" />
           </pattern>
         </defs>
 
