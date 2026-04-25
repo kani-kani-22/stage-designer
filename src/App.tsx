@@ -1776,8 +1776,8 @@ type="file"
   {/* ===== 右：ジョイスティック ===== */}
   <div style={{
     display: "grid",
-    gridTemplateColumns: "repeat(3, clamp(36px, 10vw, 56px))",
-    gridTemplateRows: "repeat(2, clamp(36px, 10vw, 56px))",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gridTemplateRows: "repeat(2, 1fr)",
     gap: "clamp(2px, 1vw, 6px)",
     flexShrink: 1,
     flex: 1,
